@@ -13,6 +13,7 @@ class Product(TimeStampedModel):
     vendor = models.ForeignKey(
         Vendor, on_delete=models.CASCADE, related_name="products"
     )
+
     sku = models.CharField(max_length=100, unique=True, blank=True)
     tool = models.CharField(max_length=100, blank=True)
     category = models.ForeignKey(Category, on_delete=models.PROTECT)

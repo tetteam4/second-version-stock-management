@@ -10,7 +10,7 @@ class Category(TimeStampedModel):
         Vendor,
         on_delete=models.CASCADE,
         related_name="categories",
-        null=False,  # ✅ Required
+        null=False,  
         blank=False,
     )
     name = models.CharField(max_length=255)
@@ -23,7 +23,7 @@ class Category(TimeStampedModel):
         unique_together = (
             "vendor",
             "name",
-        )  # ✅ Optional: Prevent same category name per vendor
+        )  
 
     def __str__(self):
         return self.name

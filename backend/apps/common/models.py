@@ -2,8 +2,9 @@ import uuid
 
 from django.contrib.auth import get_user_model
 from django.db import models
-from django_countries.fields import CountryField
 from django.utils.translation import gettext_lazy as _
+from django_countries.fields import CountryField
+
 User = get_user_model()
 
 
@@ -16,7 +17,7 @@ class TimeStampedModel(models.Model):
         abstract = True
 
 
-class Location(TimeStampedModel):
+class Location(models.Model):
     country = CountryField(
         verbose_name=_("country"), default="Af", blank=True, null=True
     )
@@ -30,21 +31,45 @@ class Location(TimeStampedModel):
         verbose_name=_("address"), max_length=255, blank=True, null=True
     )
 
-class Business(TimeStampedModel):
+    class Meta:
+        abstract = True
+
+
+class Business(models.Model):
     BUSINESS_TYPES = [
-        ('restaurant', 'Restaurant'),
-        ('shop', 'Shop'),
-        ('hospital', 'Hospital'),
-        ('warehouse', 'Warehouse'),
-        ('factory', 'Factory'),
-        ("Transport","Transport")
+        ("restaurant", "Restaurant"),
+        ("shop", "Shop"),
+        ("hospital", "Hospital"),
+        ("warehouse", "Warehouse"),
+        ("factory", "Factory"),
+        ("transport", "Transport"),
     ]
+
     name = models.CharField(max_length=255)
     business_type = models.CharField(max_length=50, choices=BUSINESS_TYPES)
-    location = models.OneToOneField(Location, on_delete=models.CASCADE)
-    
+
+    class Meta:
+        abstract = True
+
 
 class Staff(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     business = models.ForeignKey(Business, on_delete=models.CASCADE)
     role = models.CharField(max_length=50)
+
+    class Meta:
+        abstract = True
+
+
+class Role(models.Model):
+    class RoleType(models.TextChoices):
+        MANAGER = "manager", "Manager"
+        CASHIER = "cashier", "Cashier"
+        CHEF = "chef", "Chef"
+        WAITER = "waiter", "Waiter"
+        CLEANER = "cleaner", "Cleaner"
+
+    role = models.CharField(max_length=50, choices=RoleType.choices)
+
+    class Meta:
+        abstract = True
