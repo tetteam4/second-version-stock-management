@@ -1,9 +1,10 @@
+from apps.role.models import RoleTypeModel
 from apps.vendor.models import Vendor
 from apps.vendor.serializers import VendorSerializer
 from django.core.exceptions import ValidationError
 from rest_framework import serializers
 
-from .models import Category, Menu, MenuField, Order, OrderItem
+from .models import Category, CustomRole, Menu, MenuField, Order, OrderItem
 
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -124,7 +125,7 @@ class OrderSerializer(serializers.ModelSerializer):
         instance.save()
 
         if items_data is not None:
-            # Delete existing items
+
             instance.items.all().delete()
             total_price = 0
             for item_data in items_data:
@@ -149,3 +150,34 @@ class OrderCreateSerializer(serializers.ModelSerializer):
         for item_data in items_data:
             OrderItem.objects.create(order=order, **item_data)
         return order
+
+
+class CustomRoleSerializer(serializers.ModelSerializer):
+    # Optional: computed field for display purposes
+    role_display = serializers.SerializerMethodField()
+
+    class Meta:
+        model = CustomRole
+        fields = [
+            "id",
+            "role",
+            "role_display",
+            "country",
+            "city",
+            "state",
+            "address",
+        ]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Dynamically set choices for the "role" field from RoleTypeModel
+        self.fields["role"].choices = [
+            (r.key, r.label) for r in RoleTypeModel.objects.all()
+        ]
+
+    def get_role_display(self, obj):
+        try:
+            role_type = RoleTypeModel.objects.get(key=obj.role)
+            return role_type.label
+        except RoleTypeModel.DoesNotExist:
+            return obj.role

@@ -1,4 +1,5 @@
-from apps.common.models import TimeStampedModel
+from apps.common.models import Location, TimeStampedModel
+from apps.role.models import Role
 from apps.vendor.models import Vendor
 from django.core.exceptions import ValidationError
 from django.db import models
@@ -159,3 +160,7 @@ class OrderItem(models.Model):
 
     class Meta:
         unique_together = ("order", "menu")
+
+
+class CustomRole(Location, Role):
+    pass
