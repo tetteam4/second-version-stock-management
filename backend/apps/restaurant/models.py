@@ -2,6 +2,7 @@ from apps.common.models import TimeStampedModel
 from apps.vendor.models import Vendor
 from django.core.exceptions import ValidationError
 from django.db import models
+from django.db.models import F, FloatField, Sum
 from django.utils.translation import gettext_lazy as _
 
 
@@ -107,3 +108,54 @@ class MenuField(models.Model):
 
         verbose_name = "Menu Custom Field"
         verbose_name_plural = "Menu Custom Fields"
+
+
+class Order(TimeStampedModel):
+    class OrderStatus(models.TextChoices):
+        PENDING = "pending", _("Pending")
+        ACCEPTED = "accepted", _("Accepted")
+        REJECTED = "rejected", _("Rejected")
+        DELIVERED = "delivered", _("Delivered")
+        CANCELLED = "cancelled", _("Cancelled")
+
+    customer = models.CharField(max_length=300)
+    vendor = models.ForeignKey(Vendor, on_delete=models.CASCADE, related_name="orders")
+    status = models.CharField(
+        max_length=20,
+        choices=OrderStatus.choices,
+        default=OrderStatus.PENDING,
+    )
+    notes = models.TextField(blank=True, null=True)
+
+    def __str__(self):
+        return f"Order #{self.id} by {self.customer}"
+
+    def total_price(self):
+        return (
+            self.items.aggregate(
+                total=Sum(F("price") * F("quantity"), output_field=FloatField())
+            )["total"]
+            or 0
+        )
+
+
+class OrderItem(models.Model):
+    order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name="items")
+    menu = models.ForeignKey(Menu, on_delete=models.CASCADE, related_name="order_items")
+    quantity = models.PositiveIntegerField(default=1)
+    selected_option = models.JSONField(blank=True, null=True)
+    price = models.DecimalField(
+        max_digits=10, decimal_places=2
+    )  # Price per single item
+
+    def clean(self):
+        if self.quantity < 1:
+            raise ValidationError("Quantity must be at least 1.")
+        if self.price <= 0:
+            raise ValidationError("Price must be positive.")
+
+    def __str__(self):
+        return f"{self.quantity}x {self.menu.name}"
+
+    class Meta:
+        unique_together = ("order", "menu")

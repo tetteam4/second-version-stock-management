@@ -1,51 +1,28 @@
+from apps.users.models import User
 from django.db import models
-from shortuuid.django_fields import ShortUUIDField
 from django.utils.html import mark_safe
 from django.utils.text import slugify
+from shortuuid.django_fields import ShortUUIDField
 
-from apps.users.models import User
 from .utils import user_directory_path
 
 
 class Vendor(models.Model):
     user = models.OneToOneField(
-        User,
-        on_delete=models.SET_NULL,
-        null=True,
-        related_name="vendor"
+        User, on_delete=models.SET_NULL, null=True, related_name="vendor"
     )
     image = models.ImageField(
-        upload_to=user_directory_path,
-        default="shop-image.jpg",
-        blank=True,
-        null=True
+        upload_to=user_directory_path, default="shop-image.jpg", blank=True, null=True
     )
     name = models.CharField(
-        max_length=100,
-        help_text="Shop Name",
-        null=True,
-        blank=True
+        max_length=100, help_text="Shop Name", null=True, blank=True
     )
     email = models.EmailField(
-        max_length=100,
-        help_text="Shop Email",
-        null=True,
-        blank=True
+        max_length=100, help_text="Shop Email", null=True, blank=True
     )
-    slug = models.SlugField(
-        blank=True,
-        null=True,
-        db_index=True
-    )
-    description = models.TextField(
-        null=True,
-        blank=True
-    )
-    mobile = models.CharField(
-        max_length=150,
-        null=True,
-        blank=True
-    )
+    slug = models.SlugField(blank=True, null=True, db_index=True)
+    description = models.TextField(null=True, blank=True)
+    mobile = models.CharField(max_length=150, null=True, blank=True)
     verified = models.BooleanField(default=False)
     active = models.BooleanField(default=True)
     vid = ShortUUIDField(unique=True, length=10, max_length=20)
@@ -71,4 +48,5 @@ class Vendor(models.Model):
 
     def get_absolute_url(self):
         from django.urls import reverse
+
         return reverse("vendor_detail", kwargs={"slug": self.slug})

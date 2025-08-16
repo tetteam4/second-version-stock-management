@@ -26,6 +26,7 @@ LOCAL_APPS = [
     "apps.profiles",
     "apps.restaurant",
     "apps.table",
+    "apps.role",
 ]
 THIRD_PARTY_APP = [
     "drf_spectacular",
@@ -49,6 +50,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "apps.restaurant.subdomain_middleware.SubdomainMiddleware",
 ]
 
 ROOT_URLCONF = "config.urls"
