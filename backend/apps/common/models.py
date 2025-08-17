@@ -1,7 +1,9 @@
 import uuid
 
+from apps.role.models import Role
 from django.contrib.auth import get_user_model
 from django.db import models
+from django.utils.functional import cached_property
 from django.utils.translation import gettext_lazy as _
 from django_countries.fields import CountryField
 
@@ -55,21 +57,12 @@ class Business(models.Model):
 class Staff(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     business = models.ForeignKey(Business, on_delete=models.CASCADE)
-    role = models.CharField(max_length=50)
-
-    class Meta:
-        abstract = True
-
-
-class Role(models.Model):
-    class RoleType(models.TextChoices):
-        MANAGER = "manager", "Manager"
-        CASHIER = "cashier", "Cashier"
-        CHEF = "chef", "Chef"
-        WAITER = "waiter", "Waiter"
-        CLEANER = "cleaner", "Cleaner"
-
-    role = models.CharField(max_length=50, choices=RoleType.choices)
+    role = models.ForeignKey(Role, on_delete=models.CASCADE)
+    salary = models.DecimalField(max_digits=10, decimal_places=2)
+    start_day = models.DateField()
+    end_day = models.DateField(null=True, blank=True)
+    agreement = models.FileField(upload_to="agreements/", blank=True, null=True)
+    attribute = models.JSONField()
 
     class Meta:
         abstract = True
