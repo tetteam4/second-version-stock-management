@@ -16,6 +16,7 @@ class UserAdmin(BaseUserAdmin):
         "pkid",
         "id",
         "email",
+        "role",
         "first_name",
         "last_name",
         "is_staff",
@@ -38,6 +39,7 @@ class UserAdmin(BaseUserAdmin):
                     "is_staff",
                     "is_superuser",
                     "groups",
+                    "role",
                     "user_permissions",
                 )
             },

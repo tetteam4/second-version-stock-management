@@ -1,9 +1,17 @@
+from apps.common.models import Business
+from apps.role.models import Role
 from django.contrib.auth import get_user_model
 from django_countries.serializer_fields import CountryField
 from phonenumber_field.serializerfields import PhoneNumberField
 from rest_framework import serializers
 
 User = get_user_model()
+
+
+class BusinessSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Business
+        fields = ["id", "name", "business_type", "created_at", "updated_at"]
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -23,6 +31,7 @@ class UserSerializer(serializers.ModelSerializer):
             "first_name",
             "last_name",
             "gender",
+            "business_type",
             "phone_number",
             "profile_photo",
             "country",
@@ -45,10 +54,13 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 class CustomRegisterSerializer(serializers.ModelSerializer):
-    username = serializers.CharField(required=True)
+    username = serializers.CharField(required=False, allow_blank=True, allow_null=True)
     first_name = serializers.CharField(required=True)
     last_name = serializers.CharField(required=True)
     email = serializers.EmailField(required=True)
+    business_type = serializers.ChoiceField(
+        choices=User.BUSINESS_TYPES, required=False, allow_null=True
+    )
     password1 = serializers.CharField(write_only=True)
     password2 = serializers.CharField(write_only=True)
 
@@ -59,6 +71,7 @@ class CustomRegisterSerializer(serializers.ModelSerializer):
             "first_name",
             "last_name",
             "email",
+            "business_type",
             "password1",
             "password2",
         ]
@@ -68,13 +81,28 @@ class CustomRegisterSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError({"password": "Passwords must match."})
         return attrs
 
-    def save(self, request=None, **kwargs):
+    def create(self, validated_data):
+        # Remove password2 from validated_data since we don't need it after validation
+        validated_data.pop("password2", None)
+        password = validated_data.pop("password1")
+
+        # Handle optional username; default to email username if not provided
+        username = validated_data.get("username")
+        if not username:
+            username = validated_data["email"].split("@")[0]
+
+        # Assign default role, e.g., "user"
+        default_role = Role.get_default_role()
+
         user = User.objects.create(
-            email=self.validated_data["email"],
-            first_name=self.validated_data["first_name"],
-            last_name=self.validated_data["last_name"],
+            username=username,
+            email=validated_data["email"],
+            first_name=validated_data["first_name"],
+            last_name=validated_data["last_name"],
+            business_type=validated_data.get("business_type"),
+            role=default_role,
             is_active=True,
         )
-        user.set_password(self.validated_data["password1"])
+        user.set_password(password)
         user.save()
         return user

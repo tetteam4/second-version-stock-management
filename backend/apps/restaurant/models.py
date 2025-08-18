@@ -8,6 +8,8 @@ from django.db.models import F, FloatField, Sum
 from django.utils.timezone import now
 from django.utils.translation import gettext_lazy as _
 
+# import your User, Business, Role, Staff etc.
+
 
 class Category(TimeStampedModel):
     vendor = models.ForeignKey(
@@ -164,64 +166,58 @@ class OrderItem(models.Model):
         unique_together = ("order", "menu")
 
 
-from django.db import models
-from django.utils.timezone import now
+# class StaffAttribute(models.Model):
+#     staff = models.ForeignKey(
+#         "restaurant.StaffManager",
+#         on_delete=models.CASCADE,
+#         related_name="custom_attributes",
+#     )
+#     field_name = models.CharField(max_length=255)
+#     value = models.JSONField()
 
-# import your User, Business, Role, Staff etc.
+#     class Meta:
+#         unique_together = ("staff", "field_name")
 
-
-class StaffAttribute(models.Model):
-    staff = models.ForeignKey(
-        "restaurant.StaffManager",
-        on_delete=models.CASCADE,
-        related_name="custom_attributes",
-    )
-    field_name = models.CharField(max_length=255)
-    value = models.JSONField()
-
-    class Meta:
-        unique_together = ("staff", "field_name")
-
-    def __str__(self):
-        return f"{self.field_name} for {self.staff.user.username}"
+#     def __str__(self):
+#         return f"{self.field_name} for {self.staff.user.username}"
 
 
-class StaffManager(Staff):  # assuming Staff is concrete or imported properly
-    is_active = models.BooleanField(default=True)
+# class StaffManager(Staff):
+#     is_active = models.BooleanField(default=True)
 
-    def __str__(self):
-        return f"{self.user.username} - Manager at {self.business}"
+#     def __str__(self):
+#         return f"{self.user.username} - Manager at "
 
-    def clean(self):
-        from django.core.exceptions import ValidationError
+#     def clean(self):
+#         from django.core.exceptions import ValidationError
 
-        salary = self.get_attribute("salary")
-        if salary is not None and salary <= 0:
-            raise ValidationError("Salary must be positive.")
-        if self.end_day and self.end_day < self.start_day:
-            raise ValidationError("End day cannot be before start day.")
+#         salary = self.get_attribute("salary")
+#         if salary is not None and salary <= 0:
+#             raise ValidationError("Salary must be positive.")
+#         if self.end_day and self.end_day < self.start_day:
+#             raise ValidationError("End day cannot be before start day.")
 
-    def is_current(self):
-        today = now().date()
-        return (
-            self.is_active
-            and self.start_day <= today
-            and (not self.end_day or self.end_day >= today)
-        )
+#     def is_current(self):
+#         today = now().date()
+#         return (
+#             self.is_active
+#             and self.start_day <= today
+#             and (not self.end_day or self.end_day >= today)
+#         )
 
-    def get_attribute(self, field_name):
-        if field_name in self.attribute:
-            return self.attribute[field_name]
+#     def get_attribute(self, field_name):
+#         if field_name in self.attribute:
+#             return self.attribute[field_name]
 
-        attr = self.custom_attributes.filter(field_name=field_name).first()
-        return attr.value if attr else None
+#         attr = self.custom_attributes.filter(field_name=field_name).first()
+#         return attr.value if attr else None
 
-    def set_attribute(self, field_name, value):
-        self.attribute[field_name] = value
-        self.save()
+#     def set_attribute(self, field_name, value):
+#         self.attribute[field_name] = value
+#         self.save()
 
-        StaffAttribute.objects.update_or_create(
-            staff=self,
-            field_name=field_name,
-            defaults={"value": value},
-        )
+#         StaffAttribute.objects.update_or_create(
+#             staff=self,
+#             field_name=field_name,
+#             defaults={"value": value},
+#         )

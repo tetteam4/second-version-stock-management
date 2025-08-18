@@ -1,3 +1,4 @@
+from apps.role.models import Role, RoleType
 from django.contrib.auth.base_user import BaseUserManager
 from django.core.exceptions import ValidationError
 from django.core.validators import validate_email
@@ -12,7 +13,7 @@ class CustomUserManager(BaseUserManager):
         except ValidationError:
             raise ValueError(_("Users must have a valid email address."))
 
-    def create_user(self, first_name, last_name, email, password, **extra_fields):
+    def create_user(self, first_name, last_name, email, password=None, **extra_fields):
         if not first_name:
             raise ValueError(_("Users must have a first name."))
         if not last_name:
@@ -22,8 +23,14 @@ class CustomUserManager(BaseUserManager):
             self.email_validator(email)
         else:
             raise ValueError(_("Users must have an email address."))
+
         extra_fields.setdefault("is_staff", False)
         extra_fields.setdefault("is_superuser", False)
+        extra_fields.setdefault("is_active", True)
+
+        # Assign default role if not provided
+        if "role" not in extra_fields or extra_fields["role"] is None:
+            extra_fields["role"] = Role.get_default_role()
 
         user = self.model(
             first_name=first_name,
@@ -31,8 +38,11 @@ class CustomUserManager(BaseUserManager):
             email=email,
             **extra_fields,
         )
-        user.set_password(password)
-        user.save(using=self.db)
+        if password:
+            user.set_password(password)
+        else:
+            user.set_unusable_password()
+        user.save(using=self._db)
         return user
 
     def create_superuser(self, first_name, last_name, email, password, **extra_fields):
@@ -48,5 +58,9 @@ class CustomUserManager(BaseUserManager):
             raise ValueError(_("Superuser must have a password."))
         if not email:
             raise ValueError(_("Superuser must have an email address."))
+
+        # Assign default role if not provided
+        if "role" not in extra_fields or extra_fields["role"] is None:
+            extra_fields["role"] = Role.get_default_admin_role()
 
         return self.create_user(first_name, last_name, email, password, **extra_fields)

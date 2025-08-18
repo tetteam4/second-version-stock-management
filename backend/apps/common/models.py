@@ -47,11 +47,15 @@ class Business(models.Model):
         ("transport", "Transport"),
     ]
 
-    name = models.CharField(max_length=255)
     business_type = models.CharField(max_length=50, choices=BUSINESS_TYPES)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        abstract = True
+        app_label = "common"
+
+    def __str__(self):
+        return self.name
 
 
 class Staff(models.Model):

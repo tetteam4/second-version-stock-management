@@ -27,6 +27,7 @@ LOCAL_APPS = [
     "apps.restaurant",
     "apps.table",
     "apps.role",
+    "apps.common",
 ]
 THIRD_PARTY_APP = [
     "drf_spectacular",

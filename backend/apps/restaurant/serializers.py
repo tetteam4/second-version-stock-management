@@ -1,4 +1,3 @@
-from apps.role.models import RoleTypeModel
 from apps.vendor.models import Vendor
 from apps.vendor.serializers import VendorSerializer
 from django.core.exceptions import ValidationError
