@@ -1,6 +1,7 @@
 import uuid
 
 from apps.role.models import Role
+from apps.vendor.models import Vendor
 from django.contrib.auth import get_user_model
 from django.db import models
 from django.utils.functional import cached_property
@@ -59,12 +60,10 @@ class Business(models.Model):
 
 
 class Staff(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
-    business = models.ForeignKey(Business, on_delete=models.CASCADE)
-    role = models.ForeignKey(Role, on_delete=models.CASCADE)
     salary = models.DecimalField(max_digits=10, decimal_places=2)
     start_day = models.DateField()
     end_day = models.DateField(null=True, blank=True)
+    status = models.BooleanField(default=True)
     agreement = models.FileField(upload_to="agreements/", blank=True, null=True)
     attribute = models.JSONField()
 

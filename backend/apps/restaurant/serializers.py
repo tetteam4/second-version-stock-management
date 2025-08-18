@@ -1,9 +1,14 @@
+from apps.users.serializers import UserSerializer
 from apps.vendor.models import Vendor
 from apps.vendor.serializers import VendorSerializer
+from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from rest_framework import serializers
 
-from .models import Category, Menu, MenuField, Order, OrderItem
+from .models import Category, Menu, MenuField, Order, OrderItem, Role, StaffManagement
+from .utils import get_default_manager_role
+
+User = get_user_model()
 
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -149,3 +154,25 @@ class OrderCreateSerializer(serializers.ModelSerializer):
         for item_data in items_data:
             OrderItem.objects.create(order=order, **item_data)
         return order
+
+
+class StaffManagementSerializer(serializers.ModelSerializer):
+    role = serializers.CharField()  # role key from input
+
+    class Meta:
+        model = StaffManagement
+        exclude = ["user"]  # user is set automatically, exclude from client input
+
+    def create(self, validated_data):
+        role_key = validated_data.pop("role")
+        role = Role.objects.get(key=role_key)
+        validated_data["role"] = role
+        # user will be set in view, not here
+        return StaffManagement.objects.create(**validated_data)
+
+    def update(self, instance, validated_data):
+        if "role" in validated_data:
+            role_key = validated_data.pop("role")
+            role = Role.objects.get(key=role_key)
+            validated_data["role"] = role
+        return super().update(instance, validated_data)
