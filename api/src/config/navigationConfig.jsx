@@ -5,7 +5,7 @@ import RestaurantMenuIcon from "@mui/icons-material/RestaurantMenu";
 import PeopleIcon from "@mui/icons-material/People";
 import AdminPanelSettingsIcon from "@mui/icons-material/AdminPanelSettings";
 import InventoryIcon from "@mui/icons-material/Inventory";
-
+import CategoryIcon from "@mui/icons-material/Category"; 
 /*
   This array defines the entire navigation structure of your application.
   - text: The display name of the link.
@@ -19,25 +19,31 @@ export const navigationConfig = [
     text: "Dashboard",
     path: "/dashboard",
     icon: <DashboardIcon />,
-    roles: ["admin", "manager", "waiter", "chef","admin"],
+    roles: ["admin", "manager", "waiter", "chef", "admin"],
   },
   {
     text: "Orders",
     path: "/orders",
     icon: <ReceiptLongIcon />,
-    roles: ["manager", "waiter","admin"],
+    roles: ["manager", "waiter", "admin"],
+  },
+  {
+    text: "Categories", 
+    path: "/categories",
+    icon: <CategoryIcon />,
+    roles: ["manager", "admin"],
   },
   {
     text: "Menu Management",
     path: "/menu",
     icon: <RestaurantMenuIcon />,
-    roles: ["manager","admin"],
+    roles: ["manager", "admin"],
   },
   {
     text: "Inventory",
     path: "/inventory",
     icon: <InventoryIcon />,
-    roles: ["manager","admin"],
+    roles: ["manager", "admin"],
   },
   {
     text: "Staff Management",

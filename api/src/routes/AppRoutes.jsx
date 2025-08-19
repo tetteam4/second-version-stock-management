@@ -10,7 +10,7 @@ import InventoryPage from "../pages/InventoryPage.jsx";
 import StaffPage from "../pages/StaffPage.jsx";
 import MenuPage from "../pages/MenuPage.jsx";
 import DashboardPage from "../pages/Dashboard.jsx";
-// import InventoryPage from "../pages/InventoryPage.jsx";
+import CategoryPage from "../pages/CategoryPage.jsx";
 
 // Placeholder and Helper Pages
 const AdminSettingsPage = () => <h2>Admin Settings Page</h2>;
@@ -27,14 +27,13 @@ const AppRoutes = () => {
       <Route path="/unauthorized" element={<UnauthorizedPage />} />
 
       <Route element={<ProtectedRoute />}>
-        {/* --- FIX --- */}
-        {/* The MainLayout has path="/". All child routes are relative to this. */}
-        {/* So, path="dashboard" correctly creates the full route "/dashboard". */}
+    
         <Route path="/" element={<MainLayout />}>
           <Route index element={<Navigate to="/dashboard" replace />} />
 
           <Route path="dashboard" element={<DashboardPage />} />
           <Route path="orders" element={<OrdersPage />} />
+          <Route path="categories" element={<CategoryPage />} />
           <Route path="menu" element={<MenuPage />} />
           <Route path="inventory" element={<InventoryPage />} />
           <Route path="staff" element={<StaffPage />} />
