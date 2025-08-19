@@ -22,11 +22,14 @@ User = get_user_model()
 class MultiProductImagesSerializer(serializers.ModelSerializer):
     class Meta:
         model = MultiProductImages
-        fields = ["id", "product", "image", "created_at", "updated_at"]
+        fields = ["id", "category", "image", "created_at", "updated_at"]
 
 
 class CategorySerializer(serializers.ModelSerializer):
-    vendor = VendorSerializer(read_only=True)
+    vendor_id = serializers.PrimaryKeyRelatedField(
+        queryset=Vendor.objects.all(), source="vendor", write_only=True
+    )
+
     multi_images = MultiProductImagesSerializer(many=True, read_only=True)
 
     uploaded_images = serializers.ListField(
@@ -41,7 +44,7 @@ class CategorySerializer(serializers.ModelSerializer):
         model = Category
         fields = [
             "id",
-            "vendor",
+            "vendor_id",
             "name",
             "multi_images",
             "uploaded_images",
@@ -54,18 +57,37 @@ class CategorySerializer(serializers.ModelSerializer):
         uploaded_images = validated_data.pop("uploaded_images", [])
         category = Category.objects.create(**validated_data)
 
-        for image in uploaded_images:
-            MultiProductImages.objects.create(category=category, image=image)
+        for img in uploaded_images:
+            MultiProductImages.objects.create(category=category, image=img)
 
         return category
 
     def update(self, instance, validated_data):
         uploaded_images = validated_data.pop("uploaded_images", [])
-        instance.name = validated_data.get("name", instance.name)
-        instance.save()
+        instance = super().update(instance, validated_data)
 
-        for image in uploaded_images:
-            MultiProductImages.objects.create(category=instance, image=image)
+        # Get existing image IDs
+        existing_ids = [img.id for img in instance.multi_images.all()]
+
+        # Get kept_image_ids from request (not validated_data)
+        kept_ids_raw = self.context["request"].data.get("kept_image_ids", "")
+        if isinstance(kept_ids_raw, str):
+            kept_ids = list(map(int, filter(None, kept_ids_raw.split(","))))
+        elif isinstance(kept_ids_raw, list):
+            kept_ids = list(map(int, kept_ids_raw))
+        else:
+            kept_ids = []
+
+        # Save new uploaded images
+        for img in uploaded_images:
+            MultiProductImages.objects.create(category=instance, image=img)
+
+        # Delete images not in kept_ids
+        to_remove = set(existing_ids) - set(kept_ids)
+        if to_remove:
+            MultiProductImages.objects.filter(
+                category=instance, id__in=to_remove
+            ).delete()
 
         return instance
 
