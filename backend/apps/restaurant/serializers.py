@@ -28,7 +28,11 @@ class MultiProductImagesSerializer(serializers.ModelSerializer):
 class CategorySerializer(serializers.ModelSerializer):
     vendor = VendorSerializer(read_only=True)
     multi_images = MultiProductImagesSerializer(many=True, read_only=True)
-
+    vendor_id = serializers.PrimaryKeyRelatedField(
+    queryset=Vendor.objects.all(),
+    source="vendor",  # must match the ForeignKey field name in Category model
+    write_only=True
+)
     uploaded_images = serializers.ListField(
         child=serializers.ImageField(
             max_length=100000, allow_empty_file=False, use_url=False
@@ -47,6 +51,7 @@ class CategorySerializer(serializers.ModelSerializer):
             "uploaded_images",
             "created_at",
             "updated_at",
+            "vendor_id"
         ]
         read_only_fields = ["created_at", "updated_at"]
 

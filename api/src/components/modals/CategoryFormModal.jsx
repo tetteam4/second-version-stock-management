@@ -1,6 +1,7 @@
 import React, { useEffect } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useSelector } from "react-redux";
 import {
   Dialog,
   DialogTitle,
@@ -13,10 +14,12 @@ import {
 } from "@mui/material";
 
 import { createCategory, updateCategory } from "../../api/restaurantApi";
+import { selectUser } from "../../features/auth/authSlice";
 
-const CategoryFormModal = ({ open, onClose, category, categories }) => {
+const CategoryFormModal = ({ open, onClose, category }) => {
   const queryClient = useQueryClient();
   const isEditMode = Boolean(category);
+  const user = useSelector(selectUser);
   const {
     handleSubmit,
     control,
@@ -41,29 +44,26 @@ const CategoryFormModal = ({ open, onClose, category, categories }) => {
   }, [category, isEditMode, reset, open]);
 
   const onSubmit = (data) => {
-    const vendorId = isEditMode
-      ? category?.vendor?.id
-      : categories?.[0]?.vendor?.id;
+    const vendorId = user?.vendor?.id;
 
     if (!vendorId) {
       console.error(
-        "Critical Error: Could not determine Vendor ID from the available data."
+        "Critical Error: Vendor ID is not available for the current user in Redux."
       );
       alert(
-        "Cannot create a category because the Vendor ID could not be found."
+        "Cannot create category: Vendor ID not found in your user profile."
       );
       return;
     }
 
-    // --- FIX ---
-    // The key is now "vendor_id" to match what the backend serializer expects.
-    const submissionData = { ...data, vendor_id: vendorId };
-
     if (isEditMode) {
-      // For updates, DRF usually expects the main field name, not the '_id' version.
-      // We will send both for robustness, but the correct one for PUT is likely 'vendor'.
-      mutation.mutate({ id: category.id, ...data, vendor: vendorId });
+      // For updates, DRF usually expects the field name for the relation.
+      const submissionData = { ...data, vendor: vendorId };
+      mutation.mutate({ id: category.id, ...submissionData });
     } else {
+      // --- FIX ---
+      // For creation, the backend error explicitly asks for "vendor_id".
+      const submissionData = { ...data, vendor_id: vendorId };
       mutation.mutate(submissionData);
     }
   };
