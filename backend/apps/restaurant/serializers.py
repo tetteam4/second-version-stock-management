@@ -5,25 +5,70 @@ from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from rest_framework import serializers
 
-from .models import Category, Menu, MenuField, Order, OrderItem, Role, StaffManagement
-from .utils import get_default_manager_role
+from .models import (
+    Category,
+    Menu,
+    MenuField,
+    MultiProductImages,
+    Order,
+    OrderItem,
+    Role,
+    StaffManagement,
+)
 
 User = get_user_model()
 
 
+class MultiProductImagesSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = MultiProductImages
+        fields = ["id", "product", "image", "created_at", "updated_at"]
+
+
 class CategorySerializer(serializers.ModelSerializer):
-    vendor = VendorSerializer(read_only=True)  
-    vendor_id = serializers.PrimaryKeyRelatedField(
-        queryset=Vendor.objects.all(), 
-        source="vendor",   # tells DRF that this field maps to the 'vendor' foreign key
-        write_only=True    # only used for input, not output
+    vendor = VendorSerializer(read_only=True)
+    multi_images = MultiProductImagesSerializer(many=True, read_only=True)
+
+    uploaded_images = serializers.ListField(
+        child=serializers.ImageField(
+            max_length=100000, allow_empty_file=False, use_url=False
+        ),
+        write_only=True,
+        required=False,
     )
 
     class Meta:
         model = Category
-        fields = ["id", "name", "vendor", "vendor_id"]
+        fields = [
+            "id",
+            "vendor",
+            "name",
+            "multi_images",
+            "uploaded_images",
+            "created_at",
+            "updated_at",
+        ]
+        read_only_fields = ["created_at", "updated_at"]
 
-    
+    def create(self, validated_data):
+        uploaded_images = validated_data.pop("uploaded_images", [])
+        category = Category.objects.create(**validated_data)
+
+        for image in uploaded_images:
+            MultiProductImages.objects.create(category=category, image=image)
+
+        return category
+
+    def update(self, instance, validated_data):
+        uploaded_images = validated_data.pop("uploaded_images", [])
+        instance.name = validated_data.get("name", instance.name)
+        instance.save()
+
+        for image in uploaded_images:
+            MultiProductImages.objects.create(category=instance, image=image)
+
+        return instance
+
 
 class MenuFieldSerializer(serializers.ModelSerializer):
     class Meta:

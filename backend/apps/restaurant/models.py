@@ -194,3 +194,12 @@ class StaffManagement(Staff):
 
     def __str__(self):
         return f"{self.user.get_full_name()} - {self.role.label}"
+
+
+class MultiProductImages(models.Model):
+    category = models.ForeignKey(
+        Category, on_delete=models.CASCADE, related_name="multi_images"
+    )
+    image = models.ImageField(upload_to="category/", null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)

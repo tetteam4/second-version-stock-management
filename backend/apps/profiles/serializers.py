@@ -1,3 +1,4 @@
+from apps.vendor.serializers import VendorSerializer
 from django_countries.serializer_fields import CountryField
 from rest_framework import serializers
 
@@ -10,11 +11,11 @@ class ProfileSerializers(serializers.ModelSerializer):
     last_name = serializers.CharField(source="user.last_name")
     email = serializers.EmailField(source="user.email")
     role = serializers.CharField(source="user.role")
-
+    vendor = serializers.CharField()
     full_name = serializers.SerializerMethodField(read_only=True)
     profile_photo = serializers.SerializerMethodField()
     country = CountryField(name_only=True)
-
+    vendor = VendorSerializer(source="user.vendor", read_only=True)
     business_type = serializers.CharField(source="user.business_type")
     
 
@@ -29,6 +30,7 @@ class ProfileSerializers(serializers.ModelSerializer):
             "full_name",
             "email",
             "business_type",
+            "vendor",
             "profile_photo",
             "country",
             "address",
