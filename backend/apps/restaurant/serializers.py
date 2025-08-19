@@ -12,13 +12,18 @@ User = get_user_model()
 
 
 class CategorySerializer(serializers.ModelSerializer):
-    vendor = VendorSerializer(read_only=True)
+    vendor = VendorSerializer(read_only=True)  
+    vendor_id = serializers.PrimaryKeyRelatedField(
+        queryset=Vendor.objects.all(), 
+        source="vendor",   # tells DRF that this field maps to the 'vendor' foreign key
+        write_only=True    # only used for input, not output
+    )
 
     class Meta:
         model = Category
-        fields = ["id", "vendor", "name", "created_at", "updated_at"]
-        read_only_fields = ["created_at", "updated_at"]
+        fields = ["id", "name", "vendor", "vendor_id"]
 
+    
 
 class MenuFieldSerializer(serializers.ModelSerializer):
     class Meta:

@@ -16,6 +16,7 @@ class ProfileSerializers(serializers.ModelSerializer):
     country = CountryField(name_only=True)
 
     business_type = serializers.CharField(source="user.business_type")
+    
 
     class Meta:
         model = Profile

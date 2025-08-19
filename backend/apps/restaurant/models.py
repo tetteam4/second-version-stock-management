@@ -29,7 +29,7 @@ class Category(TimeStampedModel):
 
     def __str__(self):
         return self.name
-
+   
 
 class Menu(TimeStampedModel):
     class MenuChoiceType(models.TextChoices):

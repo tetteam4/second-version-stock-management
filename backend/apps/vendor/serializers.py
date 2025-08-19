@@ -6,7 +6,7 @@ from .models import Vendor
 
 class VendorSerializer(serializers.ModelSerializer):
     user = UserSerializer(read_only=True)
-
+    
     class Meta:
         model = Vendor
         fields = [
