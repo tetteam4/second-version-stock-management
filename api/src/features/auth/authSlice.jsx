@@ -49,7 +49,10 @@ const authSlice = createSlice({
     // Reducer to rehydrate user state from a valid token (e.g., on app load)
     setUser: (state, action) => {
       state.isAuthenticated = true;
-      state.user = action.payload;
+      // FIX: This now handles the nested 'profile' object correctly on app load
+      state.user = action.payload.profile
+        ? action.payload.profile
+        : action.payload;
     },
   },
   extraReducers: (builder) => {
@@ -61,7 +64,8 @@ const authSlice = createSlice({
       .addCase(loginUser.fulfilled, (state, action) => {
         state.loading = false;
         state.isAuthenticated = true;
-        state.user = action.payload.user;
+        // FIX: This now correctly stores the nested 'profile' object as the user
+        state.user = action.payload.user.profile;
         state.error = null;
       })
       .addCase(loginUser.rejected, (state, action) => {

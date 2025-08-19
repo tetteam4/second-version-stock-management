@@ -1,17 +1,18 @@
-import React from "react";
+import React, { useMemo } from "react"; // <-- Import useMemo
 import { useQuery } from "@tanstack/react-query";
 import { Typography, Box, Grid, Alert } from "@mui/material";
 import { fetchOrders } from "../../api/restaurantApi";
 
 // Import Widgets and Icons
 import KpiCard from "../widgets/KpiCard.jsx";
+import RecentOrdersTable from "../widgets/RecentOrdersTable.jsx";
+import SalesChart from "../widgets/SalesChart.jsx"; // <-- Import the new chart component
 import MonetizationOnIcon from "@mui/icons-material/MonetizationOn";
 import ReceiptLongIcon from "@mui/icons-material/ReceiptLong";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import PendingActionsIcon from "@mui/icons-material/PendingActions";
 
 const RestaurantManagerDashboard = () => {
-  // useQuery takes a unique key and a fetcher function
   const {
     data: orders,
     isLoading,
@@ -22,8 +23,7 @@ const RestaurantManagerDashboard = () => {
     queryFn: fetchOrders,
   });
 
-  // --- Data Calculation ---
-  // We calculate the metrics once the data is available.
+  // --- Data Calculation for KPIs ---
   const totalRevenue =
     orders
       ?.reduce((acc, order) => acc + parseFloat(order.total_price), 0)
@@ -34,7 +34,29 @@ const RestaurantManagerDashboard = () => {
   const pendingOrders =
     orders?.filter((order) => order.status === "pending").length || 0;
 
-  // Handle error state
+  // --- Data Transformation for the Chart using useMemo ---
+  const chartData = useMemo(() => {
+    if (!orders) return [];
+
+    // Group orders by date and sum their total_price
+    const salesByDate = orders.reduce((acc, order) => {
+      const date = new Date(order.created_at).toLocaleDateString(); // "8/20/2025"
+      if (!acc[date]) {
+        acc[date] = 0;
+      }
+      acc[date] += parseFloat(order.total_price);
+      return acc;
+    }, {});
+
+    // Convert the grouped data into an array of objects that Recharts can use and sort by date
+    return Object.keys(salesByDate)
+      .map((date) => ({
+        date: date,
+        sales: salesByDate[date],
+      }))
+      .sort((a, b) => new Date(a.date) - new Date(b.date));
+  }, [orders]); // This calculation only re-runs when 'orders' data changes
+
   if (isError) {
     return (
       <Alert severity="error">
@@ -49,8 +71,8 @@ const RestaurantManagerDashboard = () => {
         Restaurant Dashboard
       </Typography>
 
-      {/* KPI Grid */}
       <Grid container spacing={3}>
+        {/* KPI Grid */}
         <Grid item xs={12} sm={6} md={3}>
           <KpiCard
             title="Total Revenue"
@@ -79,7 +101,7 @@ const RestaurantManagerDashboard = () => {
           />
         </Grid>
         <Grid item xs={12} sm={6} md={3}>
-          <Kpi-Card
+          <KpiCard
             title="Pending Orders"
             value={pendingOrders}
             icon={<PendingActionsIcon sx={{ fontSize: 40 }} />}
@@ -88,15 +110,15 @@ const RestaurantManagerDashboard = () => {
           />
         </Grid>
 
-        {/* --- Add other components like charts or tables here --- */}
-        {/* 
-                <Grid item xs={12} md={8}>
-                    // Chart component for sales over time
-                </Grid>
-                <Grid item xs={12} md={4}>
-                    // Table/List for recent orders
-                </Grid>
-                */}
+        {/* --- Sales Chart --- */}
+        <Grid item xs={12}>
+          <SalesChart data={chartData} />
+        </Grid>
+
+        {/* --- Recent Orders Table --- */}
+        <Grid item xs={12}>
+          <RecentOrdersTable data={orders} isLoading={isLoading} />
+        </Grid>
       </Grid>
     </Box>
   );
