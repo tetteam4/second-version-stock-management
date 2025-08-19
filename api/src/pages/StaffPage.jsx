@@ -13,68 +13,69 @@ import AddCircleIcon from "@mui/icons-material/AddCircle";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 
-import { fetchMenus, deleteMenuItem } from "../api/restaurantApi";
-import MenuFormModal from "../components/modals/MenuFormModal.jsx"; // <-- Import the new modal
+import { fetchStaffList, deleteStaffMember } from "../api/staffApi";
+import StaffFormModal from "../components/modals/StaffFormModal.jsx";
 
-const MenuPage = () => {
+const StaffPage = () => {
   const queryClient = useQueryClient();
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingMenuItem, setEditingMenuItem] = useState(null);
+  const [editingStaff, setEditingStaff] = useState(null);
 
   const {
-    data: menus,
+    data: staffList,
     isLoading,
     isError,
     error,
   } = useQuery({
-    queryKey: ["menus"],
-    queryFn: fetchMenus,
+    queryKey: ["staffList"],
+    queryFn: fetchStaffList,
   });
 
   const deleteMutation = useMutation({
-    mutationFn: deleteMenuItem,
+    mutationFn: deleteStaffMember,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["menus"] });
+      queryClient.invalidateQueries({ queryKey: ["staffList"] });
     },
   });
 
   const handleDelete = (id) => {
-    if (window.confirm("Are you sure you want to delete this menu item?")) {
+    if (window.confirm("Are you sure you want to remove this staff member?")) {
       deleteMutation.mutate(id);
     }
   };
 
-  const handleOpenModal = (menuItem = null) => {
-    setEditingMenuItem(menuItem);
+  const handleOpenModal = (staffMember = null) => {
+    setEditingStaff(staffMember);
     setIsModalOpen(true);
   };
 
   const handleCloseModal = () => {
     setIsModalOpen(false);
-    setEditingMenuItem(null);
+    setEditingStaff(null);
   };
 
   const columns = [
-    { field: "name", headerName: "Name", flex: 1, minWidth: 150 },
     {
-      field: "category",
-      headerName: "Category",
+      field: "user",
+      headerName: "Name",
       flex: 1,
-      minWidth: 150,
-      valueGetter: (value) => value?.name || "N/A",
+      minWidth: 180,
+      valueGetter: (value, row) =>
+        `${row.user_details.first_name} ${row.user_details.last_name}`,
     },
-    { field: "menu_type", headerName: "Type", flex: 0.5, minWidth: 100 },
     {
-      field: "menu_value",
-      headerName: "Value / Price",
+      field: "email",
+      headerName: "Email",
+      flex: 1.5,
+      minWidth: 220,
+      valueGetter: (value, row) => row.user_details.email,
+    },
+    {
+      field: "role",
+      headerName: "Role",
       flex: 1,
       minWidth: 120,
-      valueFormatter: (value) => {
-        if (Array.isArray(value)) return value.join(", ");
-        if (typeof value === "object" && value !== null)
-          return JSON.stringify(value);
-        return value;
-      },
+      valueGetter: (value) => value.label, // Role object has key and label
     },
     {
       field: "actions",
@@ -100,7 +101,7 @@ const MenuPage = () => {
 
   if (isError) {
     return (
-      <Alert severity="error">Error fetching menu data: {error.message}</Alert>
+      <Alert severity="error">Error fetching staff data: {error.message}</Alert>
     );
   }
 
@@ -115,36 +116,32 @@ const MenuPage = () => {
         }}
       >
         <Typography variant="h4" component="h1">
-          Menu Management
+          Staff Management
         </Typography>
         <Button
           variant="contained"
           startIcon={<AddCircleIcon />}
           onClick={() => handleOpenModal()}
         >
-          New Menu Item
+          Add Staff
         </Button>
       </Box>
       <Paper sx={{ height: "75vh", width: "100%" }}>
         <DataGrid
-          rows={menus || []}
+          rows={staffList || []}
           columns={columns}
           loading={isLoading}
-          initialState={{
-            pagination: { paginationModel: { page: 0, pageSize: 25 } },
-          }}
-          pageSizeOptions={[10, 25, 50]}
+          getRowId={(row) => row.id}
         />
       </Paper>
 
-      {/* The modal is now active and controlled by the page's state */}
-      <MenuFormModal
+      <StaffFormModal
         open={isModalOpen}
         onClose={handleCloseModal}
-        menuItem={editingMenuItem}
+        staffMember={editingStaff}
       />
     </Box>
   );
 };
 
-export default MenuPage;
+export default StaffPage;

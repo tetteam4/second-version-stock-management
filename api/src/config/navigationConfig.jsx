@@ -31,7 +31,7 @@ export const navigationConfig = [
     text: "Menu Management",
     path: "/menu",
     icon: <RestaurantMenuIcon />,
-    roles: ["manager","amdin"],
+    roles: ["manager","admin"],
   },
   {
     text: "Inventory",

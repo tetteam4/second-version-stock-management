@@ -27,12 +27,8 @@ const Sidebar = ({ drawerWidth }) => {
     navigate("/login");
   };
 
-  // Filter the navigation items based on the user's role
   const accessibleRoutes = navigationConfig.filter((item) => {
-    if (item.roles.length === 0) {
-      return true; // Visible to all authenticated users
-    }
-    // FIX: This now checks for user.role and converts to lowercase to prevent case-sensitivity issues ("Admin" vs "admin")
+    if (item.roles.length === 0) return true;
     return user && user.role && item.roles.includes(user.role.toLowerCase());
   });
 
@@ -47,6 +43,9 @@ const Sidebar = ({ drawerWidth }) => {
       <List>
         {accessibleRoutes.map((item) => (
           <ListItem key={item.text} disablePadding>
+            {/* --- FIX --- */}
+            {/* This `ListItemButton` uses `component={NavLink}` and `to={item.path}` */}
+            {/* This is the critical part that enables client-side navigation. */}
             <ListItemButton
               component={NavLink}
               to={item.path}
@@ -71,7 +70,8 @@ const Sidebar = ({ drawerWidth }) => {
         <ListItem disablePadding>
           <ListItemButton onClick={handleLogout}>
             <ListItemIcon>
-              <LogoutIcon />
+              {" "}
+              <LogoutIcon />{" "}
             </ListItemIcon>
             <ListItemText primary="Logout" />
           </ListItemButton>
