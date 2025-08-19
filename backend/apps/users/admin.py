@@ -40,6 +40,7 @@ class UserAdmin(BaseUserAdmin):
                     "is_superuser",
                     "groups",
                     "role",
+                    "business_type",
                     "user_permissions",
                 )
             },

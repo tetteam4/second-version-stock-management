@@ -15,6 +15,8 @@ class ProfileSerializers(serializers.ModelSerializer):
     profile_photo = serializers.SerializerMethodField()
     country = CountryField(name_only=True)
 
+    business_type = serializers.CharField(source="user.business_type")
+
     class Meta:
         model = Profile
         fields = [
@@ -25,6 +27,7 @@ class ProfileSerializers(serializers.ModelSerializer):
             "role",
             "full_name",
             "email",
+            "business_type",
             "profile_photo",
             "country",
             "address",
