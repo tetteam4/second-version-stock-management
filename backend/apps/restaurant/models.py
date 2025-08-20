@@ -196,10 +196,15 @@ class StaffManagement(Staff):
         return f"{self.user.get_full_name()} - {self.role.label}"
 
 
-class MultiProductImages(models.Model):
+class MultiImages(models.Model):
     category = models.ForeignKey(
         Category, on_delete=models.CASCADE, related_name="multi_images"
     )
     image = models.ImageField(upload_to="category/", null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+
+class MenuImage(TimeStampedModel):
+    menu = models.ForeignKey(Menu, on_delete=models.CASCADE, related_name="images")
+    image = models.ImageField(upload_to="menu/")
