@@ -174,7 +174,7 @@ class RoleType(models.TextChoices):
     CLEANER = "cleaner", "Cleaner"
 
 
-class Role(models.Model):
+class RestaurantRole(models.Model):
     key = models.CharField(max_length=50, unique=True)
     label = models.CharField(max_length=100)
 
@@ -190,10 +190,18 @@ class Role(models.Model):
 class StaffManagement(Staff):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     vendor = models.ForeignKey(Vendor, on_delete=models.CASCADE, related_name="staff")
-    role = models.ForeignKey(Role, on_delete=models.CASCADE, related_name="role")
+    role = models.ForeignKey(
+        RestaurantRole, on_delete=models.CASCADE, related_name="role"
+    )
 
     def __str__(self):
-        return f"{self.user.get_full_name()} - {self.role.label}"
+        user_name = (
+            self.user.get_full_name()
+            if callable(self.user.get_full_name)
+            else self.user.get_full_name
+        )
+        role_label = self.role.label() if callable(self.role.label) else self.role.label
+        return f"{user_name} - {role_label}"
 
 
 class MultiImages(models.Model):

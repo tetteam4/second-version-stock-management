@@ -13,7 +13,7 @@ from .models import (
     MultiImages,
     Order,
     OrderItem,
-    Role,
+    RestaurantRole,
     StaffManagement,
 )
 
@@ -289,7 +289,7 @@ class StaffManagementSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         role_key = validated_data.pop("role")
-        role = Role.objects.get(key=role_key)
+        role = RestaurantRole.objects.get(key=role_key)
         validated_data["role"] = role
         # user will be set in view, not here
         return StaffManagement.objects.create(**validated_data)
@@ -297,6 +297,6 @@ class StaffManagementSerializer(serializers.ModelSerializer):
     def update(self, instance, validated_data):
         if "role" in validated_data:
             role_key = validated_data.pop("role")
-            role = Role.objects.get(key=role_key)
+            role = RestaurantRole.objects.get(key=role_key)
             validated_data["role"] = role
         return super().update(instance, validated_data)
