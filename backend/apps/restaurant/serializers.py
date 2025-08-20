@@ -57,6 +57,7 @@ class CategorySerializer(serializers.ModelSerializer):
             "uploaded_images",
             "created_at",
             "updated_at",
+            "vendor_id"
         ]
         read_only_fields = ["created_at", "updated_at"]
 

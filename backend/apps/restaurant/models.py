@@ -29,7 +29,7 @@ class Category(TimeStampedModel):
 
     def __str__(self):
         return self.name
-
+   
 
 class Menu(TimeStampedModel):
     class MenuChoiceType(models.TextChoices):
@@ -183,7 +183,6 @@ class RestaurantRole(models.Model):
     def get_choices(cls):
         # Return all roles as (key, label) tuples
         return list(cls.objects.values_list("key", "label"))
-
 
 class StaffManagement(Staff):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
