@@ -88,7 +88,7 @@ class Menu(TimeStampedModel):
                     {"menu_value": "For 'checkbox' type, menu_value must be a boolean."}
                 )
         elif self.menu_type == self.MenuChoiceType.INPUT:
-            if not isinstance(self.menu_value, str):
+            if not isinstance(self.menu_value, dict):
                 raise ValidationError(
                     {"menu_value": "For 'input' type, menu_value must be a string."}
                 )
@@ -149,9 +149,7 @@ class OrderItem(models.Model):
     menu = models.ForeignKey(Menu, on_delete=models.CASCADE, related_name="order_items")
     quantity = models.PositiveIntegerField(default=1)
     selected_option = models.JSONField(blank=True, null=True)
-    price = models.DecimalField(
-        max_digits=10, decimal_places=2
-    )  # Price per single item
+    price = models.DecimalField(max_digits=10, decimal_places=2)
 
     def clean(self):
         if self.quantity < 1:
