@@ -6,7 +6,7 @@ import { fetchOrders } from "../../api/restaurantApi";
 // Import Widgets and Icons
 import KpiCard from "../widgets/KpiCard.jsx";
 import RecentOrdersTable from "../widgets/RecentOrdersTable.jsx";
-import SalesChart from "../widgets/SalesChart.jsx"; // <-- Import the new chart component
+import SalesChart from "../widgets/SalesChart.jsx"; //
 import MonetizationOnIcon from "@mui/icons-material/MonetizationOn";
 import ReceiptLongIcon from "@mui/icons-material/ReceiptLong";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";

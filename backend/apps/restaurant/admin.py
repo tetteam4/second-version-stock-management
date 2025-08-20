@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Category, Menu, MenuField, Order, OrderItem
+from .models import Category, Menu, MenuField, Order, OrderItem,Staff,StaffManagement
 
 
 @admin.register(Category)
@@ -57,3 +57,5 @@ class OrderAdmin(admin.ModelAdmin):
 class OrderItemAdmin(admin.ModelAdmin):
     list_display = ["order", "menu", "quantity"]
     search_fields = ["order__customer", "menu__name"]
+# admin.site.register(Staff)
+admin.site.register(StaffManagement)

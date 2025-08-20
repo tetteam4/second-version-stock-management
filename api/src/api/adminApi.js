@@ -1,27 +1,35 @@
 import axiosInstance from "./axios";
 
-// Fetches a list of all users in the system.
+// This function now correctly handles the paginated response from the backend.
 export const fetchAllUsers = async () => {
-  const { data } = await axiosInstance.get("/auth/register/");
-  return data;
+  const { data } = await axiosInstance.get("/profiles/all/");
+
+  // --- FIX ---
+  // Check for the nested 'results' array inside the 'profiles' object.
+  if (data && data.profiles && Array.isArray(data.profiles.results)) {
+    return data.profiles.results; // <-- Return the correct array
+  }
+
+  // This warning will no longer appear, but it's good to keep for future debugging.
+  console.warn(
+    "fetchAllUsers: API response did not contain a 'profiles.results' array.",
+    data
+  );
+  return [];
 };
 
-// Fetches a list of all products from all vendors.
+// --- These functions remain the same ---
 export const fetchAllProducts = async () => {
   const { data } = await axiosInstance.get("/inventory/products/");
   return data;
 };
 
-// Fetches a list of all sales from all vendors.
 export const fetchAllSales = async () => {
   const { data } = await axiosInstance.get("/inventory/sales/");
   return data;
 };
 
-// This is a placeholder as the backend endpoint to list all vendors is missing.
 export const fetchAllVendors = async () => {
-  // We return an empty array so the frontend doesn't crash.
-  // To make this work, a new endpoint (e.g., GET /api/v1/vendors/) would be needed on the backend.
   console.warn(
     "API endpoint for listing all vendors not found. Returning placeholder data."
   );

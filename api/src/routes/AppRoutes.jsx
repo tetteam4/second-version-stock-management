@@ -11,7 +11,8 @@ import StaffPage from "../pages/StaffPage.jsx";
 import MenuPage from "../pages/MenuPage.jsx";
 import DashboardPage from "../pages/Dashboard.jsx";
 import CategoryPage from "../pages/CategoryPage.jsx";
-
+import RegisterPage from "../pages/RegisterPage.jsx";
+import ProductPage from "../pages/ProductPage.jsx"; 
 // Placeholder and Helper Pages
 const AdminSettingsPage = () => <h2>Admin Settings Page</h2>;
 const WelcomePage = () => <h2>Welcome to the ERP</h2>;
@@ -23,11 +24,13 @@ const AppRoutes = () => {
   return (
     <Routes>
       <Route path="/login" element={<LoginPage />} />
+      <Route path="/register" element={<RegisterPage />} />
+
+      {/* Redirect from root to welcome page */}
       <Route path="/welcome" element={<WelcomePage />} />
       <Route path="/unauthorized" element={<UnauthorizedPage />} />
 
       <Route element={<ProtectedRoute />}>
-    
         <Route path="/" element={<MainLayout />}>
           <Route index element={<Navigate to="/dashboard" replace />} />
 
@@ -35,6 +38,7 @@ const AppRoutes = () => {
           <Route path="orders" element={<OrdersPage />} />
           <Route path="categories" element={<CategoryPage />} />
           <Route path="menu" element={<MenuPage />} />
+          <Route path="products" element={<ProductPage />} />
           <Route path="inventory" element={<InventoryPage />} />
           <Route path="staff" element={<StaffPage />} />
 

@@ -8,16 +8,15 @@ import {
   fetchAllSales,
 } from "../../api/adminApi.js";
 
-// Import Widgets and Icons
 import KpiCard from "../widgets/KpiCard.jsx";
 import UserRegistrationsChart from "../widgets/UserRegistrationsChart.jsx";
+import UserManagementTable from "../widgets/UserManagementTable.jsx";
 import PeopleIcon from "@mui/icons-material/People";
 import StoreIcon from "@mui/icons-material/Store";
 import InventoryIcon from "@mui/icons-material/Inventory";
 import MonetizationOnIcon from "@mui/icons-material/MonetizationOn";
 
 const AdminDashboard = () => {
-  // useQueries allows us to fetch multiple data sources in parallel
   const results = useQueries({
     queries: [
       { queryKey: ["allUsers"], queryFn: fetchAllUsers },
@@ -27,37 +26,34 @@ const AdminDashboard = () => {
     ],
   });
 
-  // Destructure the results for easier access
   const [usersResult, vendorsResult, productsResult, salesResult] = results;
-  const { data: allUsers } = usersResult;
-  const { data: allVendors } = vendorsResult;
-  const { data: allProducts } = productsResult;
-  const { data: allSales } = salesResult;
+  // Safely default to an empty array if data is still fetching or undefined
+  const allUsers = usersResult.data || [];
+  const allVendors = vendorsResult.data || [];
+  const allProducts = productsResult.data || [];
+  const allSales = salesResult.data || [];
 
-  // Determine the overall loading and error states
   const isLoading = results.some((query) => query.isLoading);
   const isError = results.some((query) => query.isError);
   const error = results.find((query) => query.isError)?.error;
 
-  // --- KPI Calculations ---
-  const totalUsers = allUsers?.length || 0;
-  const totalVendors = allVendors?.length || 0;
-  const totalProducts = allProducts?.length || 0;
-  const totalRevenue =
-    allSales
-      ?.reduce((acc, sale) => acc + parseFloat(sale.total_revenue), 0)
-      .toFixed(2) || 0;
+  const totalUsers = allUsers.length;
+  const totalVendors = allVendors.length;
+  const totalProducts = allProducts.length;
+  const totalRevenue = allSales
+    .reduce((acc, sale) => acc + parseFloat(sale.total_revenue || 0), 0)
+    .toFixed(2);
 
-  // --- Data Transformation for User Chart ---
   const userChartData = useMemo(() => {
-    if (!allUsers) return [];
+    if (!allUsers || allUsers.length === 0) return [];
 
-    // This relies on the 'date_joined' field from your User model.
-    // If it's not being sent by the serializer, this will group by 'Unknown Date'.
-    const usersByDate = allUsers.reduce((acc, user) => {
-      const date = user.date_joined
-        ? new Date(user.date_joined).toLocaleString()
-        : "Unknown Date";
+    // --- FIX ---
+    // Your Profile model has a `created_at` field from the TimeStampedModel. We'll use that.
+    // The error occurred because the `allUsers` variable was not an array.
+    const usersByDate = allUsers.reduce((acc, profile) => {
+      const date = new Date(
+        profile.created_at || Date.now()
+      ).toLocaleDateString();
       if (!acc[date]) {
         acc[date] = 0;
       }
@@ -66,10 +62,7 @@ const AdminDashboard = () => {
     }, {});
 
     return Object.keys(usersByDate)
-      .map((date) => ({
-        date: date,
-        users: usersByDate[date],
-      }))
+      .map((date) => ({ date: date, users: usersByDate[date] }))
       .sort((a, b) => new Date(a.date) - new Date(b.date));
   }, [allUsers]);
 
@@ -86,7 +79,6 @@ const AdminDashboard = () => {
       </Typography>
 
       <Grid container spacing={3}>
-        {/* KPI Widgets */}
         <Grid item xs={12} sm={6} md={3}>
           <KpiCard
             title="Total Users"
@@ -121,9 +113,12 @@ const AdminDashboard = () => {
           />
         </Grid>
 
-        {/* Chart Widget */}
         <Grid item xs={12}>
           <UserRegistrationsChart data={userChartData} />
+        </Grid>
+
+        <Grid item xs={12}>
+          <UserManagementTable />
         </Grid>
       </Grid>
     </Box>

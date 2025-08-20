@@ -27,9 +27,24 @@ const Sidebar = ({ drawerWidth }) => {
     navigate("/login");
   };
 
+  // --- FIX ---
+  // The filter logic now checks both the user's role and business type.
   const accessibleRoutes = navigationConfig.filter((item) => {
-    if (item.roles.length === 0) return true;
-    return user && user.role && item.roles.includes(user.role.toLowerCase());
+    if (!user) return false;
+
+    const userRole = user.role ? user.role.toLowerCase() : "";
+    const userBusiness = user.business_type || "";
+
+    // Check if the user's role is allowed (or if the link is for all roles)
+    const hasRole = item.roles.length === 0 || item.roles.includes(userRole);
+
+    // Check if the user's business type is allowed (or if the link is for all business types)
+    const hasBusinessType =
+      item.businessTypes.length === 0 ||
+      item.businessTypes.includes(userBusiness);
+
+    // The link is only shown if both conditions are met
+    return hasRole && hasBusinessType;
   });
 
   const drawerContent = (
@@ -43,9 +58,6 @@ const Sidebar = ({ drawerWidth }) => {
       <List>
         {accessibleRoutes.map((item) => (
           <ListItem key={item.text} disablePadding>
-            {/* --- FIX --- */}
-            {/* This `ListItemButton` uses `component={NavLink}` and `to={item.path}` */}
-            {/* This is the critical part that enables client-side navigation. */}
             <ListItemButton
               component={NavLink}
               to={item.path}
@@ -53,9 +65,7 @@ const Sidebar = ({ drawerWidth }) => {
                 "&.active": {
                   backgroundColor: "primary.main",
                   color: "primary.contrastText",
-                  "& .MuiListItemIcon-root": {
-                    color: "primary.contrastText",
-                  },
+                  "& .MuiListItemIcon-root": { color: "primary.contrastText" },
                 },
               }}
             >
