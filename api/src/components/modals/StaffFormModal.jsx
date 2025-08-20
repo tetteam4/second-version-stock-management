@@ -13,10 +13,9 @@ import { selectUser } from '../../features/auth/authSlice.jsx';
 const StaffFormModal = ({ open, onClose, staffMember }) => {
     const queryClient = useQueryClient();
     const isEditMode = Boolean(staffMember);
-    const loggedInUser = useSelector(selectUser); // The manager who is logged in
+    const loggedInUser = useSelector(selectUser);
 
     const { handleSubmit, control, reset, formState: { errors } } = useForm({
-        // Add default values for all required fields to prevent uncontrolled input errors
         defaultValues: {
             user: '',
             role: '',
@@ -25,27 +24,30 @@ const StaffFormModal = ({ open, onClose, staffMember }) => {
         }
     });
 
-    // Fetch all users to populate the user selection dropdown
-    const { data: allUsers, isLoading: isLoadingUsers } = useQuery({
+    // Fetches all user profiles (which now include user_id)
+    const { data: allProfiles, isLoading: isLoadingUsers } = useQuery({
         queryKey: ['allUsers'],
         queryFn: fetchAllUsers,
         enabled: open,
     });
 
-    // Fetches current staff to filter out users who are already staff members
+    // Fetches current staff list
     const { data: staffList } = useQuery({
         queryKey: ['staffList'],
         queryFn: fetchStaffList,
         enabled: open && !isEditMode,
+        initialData: [],
     });
     
-    // Filters the user list to show only users who are not already staff
+    // Correctly filters the user profiles list
     const availableUsers = useMemo(() => {
-        if (!allUsers) return [];
-        if (isEditMode || !staffList) return allUsers;
+        if (!allProfiles) return [];
+        if (isEditMode) return allProfiles; // No need to filter in edit mode
+
         const staffUserIds = new Set(staffList.map(s => s.user));
-        return allUsers.filter(u => !staffUserIds.has(u.id));
-    }, [allUsers, staffList, isEditMode]);
+        // Filter profiles where the nested user_id is not in the staff list
+        return allProfiles.filter(profile => !staffUserIds.has(profile.user_id));
+    }, [allProfiles, staffList, isEditMode]);
 
     const mutation = useMutation({
         mutationFn: isEditMode ? updateStaffMember : createStaffMember,
@@ -59,7 +61,6 @@ const StaffFormModal = ({ open, onClose, staffMember }) => {
         }
     });
 
-    // Effect to populate form when editing or clear it for a new entry
     useEffect(() => {
         if (open) {
             if (isEditMode && staffMember) {
@@ -75,20 +76,13 @@ const StaffFormModal = ({ open, onClose, staffMember }) => {
         }
     }, [staffMember, isEditMode, reset, open]);
 
-    // This function sends all required data to the backend
     const onSubmit = (data) => {
         const vendorId = loggedInUser?.vendor?.id;
         if (!vendorId) {
             toast.error("Could not process: Your vendor ID is missing.");
             return;
         }
-
-        const submissionData = {
-            ...data,
-            vendor: vendorId,
-            attribute: {}, // Sending an empty JSON object to satisfy the 'attribute' requirement
-        };
-
+        const submissionData = { ...data, vendor: vendorId, attribute: {} };
         if (isEditMode) {
             mutation.mutate({ id: staffMember.id, ...submissionData });
         } else {
@@ -96,11 +90,11 @@ const StaffFormModal = ({ open, onClose, staffMember }) => {
         }
     };
     
-    // Memoized calculation to find the full user details for display in edit mode
+    // Finds the full profile details for display in edit mode
     const editModeUserDetails = useMemo(() => {
-        if (!isEditMode || !allUsers || !staffMember) return null;
-        return allUsers.find(u => u.id === staffMember.user);
-    }, [isEditMode, allUsers, staffMember]);
+        if (!isEditMode || !allProfiles || !staffMember) return null;
+        return allProfiles.find(p => p.user_id === staffMember.user);
+    }, [isEditMode, allProfiles, staffMember]);
 
     return (
         <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
@@ -118,13 +112,13 @@ const StaffFormModal = ({ open, onClose, staffMember }) => {
                             render={({ field }) => (
                                 <Select {...field} label="User" disabled={isLoadingUsers || isEditMode}>
                                     {isEditMode && editModeUserDetails ? (
-                                         <MenuItem key={editModeUserDetails.id} value={editModeUserDetails.id}>
+                                         <MenuItem key={editModeUserDetails.user_id} value={editModeUserDetails.user_id}>
                                              {`${editModeUserDetails.first_name} ${editModeUserDetails.last_name}`}
                                          </MenuItem>
                                     ) : (
-                                        availableUsers.map(u => (
-                                            <MenuItem key={u.id} value={u.id}>
-                                                {`${u.first_name} ${u.last_name} (${u.email})`}
+                                        availableUsers.map(profile => (
+                                            <MenuItem key={profile.user_id} value={profile.user_id}>
+                                                {`${profile.first_name} ${profile.last_name} (${profile.email})`}
                                             </MenuItem>
                                         ))
                                     )}

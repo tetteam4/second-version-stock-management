@@ -17,12 +17,13 @@ class ProfileSerializers(serializers.ModelSerializer):
     country = CountryField(name_only=True)
     vendor = VendorSerializer(source="user.vendor", read_only=True)
     business_type = serializers.CharField(source="user.business_type")
-    
+    user_id = serializers.UUIDField(source="user.id", read_only=True)
 
     class Meta:
         model = Profile
         fields = [
             "id",
+            "user_id",
             "username",
             "first_name",
             "last_name",
@@ -38,6 +39,7 @@ class ProfileSerializers(serializers.ModelSerializer):
             "city",
             "about_me",
             "phone_number",
+
         ]
 
     def get_full_name(self, obj):
