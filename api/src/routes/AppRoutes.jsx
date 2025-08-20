@@ -13,6 +13,7 @@ import DashboardPage from "../pages/Dashboard.jsx";
 import CategoryPage from "../pages/CategoryPage.jsx";
 import RegisterPage from "../pages/RegisterPage.jsx";
 import ProductPage from "../pages/ProductPage.jsx"; 
+import ProfilePage from "../pages/ProfilePage.jsx";
 // Placeholder and Helper Pages
 const AdminSettingsPage = () => <h2>Admin Settings Page</h2>;
 const WelcomePage = () => <h2>Welcome to the ERP</h2>;
@@ -41,6 +42,7 @@ const AppRoutes = () => {
           <Route path="products" element={<ProductPage />} />
           <Route path="inventory" element={<InventoryPage />} />
           <Route path="staff" element={<StaffPage />} />
+          <Route path="profile" element={<ProfilePage />} />
 
           {/* This nested route correctly creates the full path "/admin/settings" */}
           <Route

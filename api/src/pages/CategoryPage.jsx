@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { toast } from "react-hot-toast";
 import {
   Box,
   Typography,
@@ -15,11 +16,14 @@ import DeleteIcon from "@mui/icons-material/Delete";
 
 import { fetchCategories, deleteCategory } from "../api/restaurantApi";
 import CategoryFormModal from "../components/modals/CategoryFormModal.jsx";
+import ConfirmDialog from "../components/common/ConfirmDialog.jsx";
 
 const CategoryPage = () => {
   const queryClient = useQueryClient();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState(null);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [categoryToDelete, setCategoryToDelete] = useState(null);
 
   const {
     data: categories,
@@ -34,18 +38,27 @@ const CategoryPage = () => {
   const deleteMutation = useMutation({
     mutationFn: deleteCategory,
     onSuccess: () => {
+      toast.success("Category deleted successfully!");
       queryClient.invalidateQueries({ queryKey: ["categories"] });
+    },
+    onError: (error) => {
+      const errorMsg =
+        error.response?.data?.detail || "An unexpected error occurred.";
+      toast.error(`Error deleting category: ${errorMsg}`);
     },
   });
 
-  const handleDelete = (id) => {
-    if (
-      window.confirm(
-        "Are you sure you want to delete this category? This might affect existing menu items."
-      )
-    ) {
-      deleteMutation.mutate(id);
+  const handleDeleteClick = (id) => {
+    setCategoryToDelete(id);
+    setConfirmOpen(true);
+  };
+
+  const handleConfirmDelete = () => {
+    if (categoryToDelete) {
+      deleteMutation.mutate(categoryToDelete);
     }
+    setConfirmOpen(false);
+    setCategoryToDelete(null);
   };
 
   const handleOpenModal = (category = null) => {
@@ -59,12 +72,17 @@ const CategoryPage = () => {
   };
 
   const columns = [
-    { field: "name", headerName: "Category Name", flex: 1 },
+    {
+      field: "name",
+      headerName: "Category Name",
+      flex: 1,
+    },
     {
       field: "created_at",
       headerName: "Date Created",
       flex: 1,
-      valueFormatter: (value) => new Date(value).toLocaleString(),
+      valueFormatter: (value) =>
+        value ? new Date(value).toLocaleString() : "",
     },
     {
       field: "actions",
@@ -77,7 +95,7 @@ const CategoryPage = () => {
             <EditIcon />
           </IconButton>
           <IconButton
-            onClick={() => handleDelete(params.row.id)}
+            onClick={() => handleDeleteClick(params.row.id)}
             color="error"
             size="small"
           >
@@ -127,12 +145,18 @@ const CategoryPage = () => {
         />
       </Paper>
 
-      {/* --- FIX --- */}
-      {/* The unnecessary 'categories' prop is now removed. */}
       <CategoryFormModal
         open={isModalOpen}
         onClose={handleCloseModal}
         category={editingCategory}
+      />
+
+      <ConfirmDialog
+        open={confirmOpen}
+        onClose={() => setConfirmOpen(false)}
+        onConfirm={handleConfirmDelete}
+        title="Delete Category?"
+        message="Are you sure you want to delete this category? This might affect menu items and cannot be undone."
       />
     </Box>
   );

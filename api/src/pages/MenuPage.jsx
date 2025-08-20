@@ -7,6 +7,7 @@ import {
   Paper,
   Alert,
   IconButton,
+  Chip,
 } from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
 import AddCircleIcon from "@mui/icons-material/AddCircle";
@@ -14,7 +15,7 @@ import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 
 import { fetchMenus, deleteMenuItem } from "../api/restaurantApi";
-import MenuFormModal from "../components/modals/MenuFormModal.jsx"; // <-- Import the new modal
+import MenuFormModal from "../components/modals/MenuFormModal.jsx";
 
 const MenuPage = () => {
   const queryClient = useQueryClient();
@@ -61,18 +62,22 @@ const MenuPage = () => {
       headerName: "Category",
       flex: 1,
       minWidth: 150,
-      valueGetter: (value) => value?.name || "N/A",
+      valueGetter: (value, row) => row.category?.name || "N/A",
     },
-    { field: "menu_type", headerName: "Type", flex: 0.5, minWidth: 100 },
+    {
+      field: "menu_type",
+      headerName: "Type",
+      width: 120,
+      renderCell: (params) => <Chip label={params.value} size="small" />,
+    },
     {
       field: "menu_value",
       headerName: "Value / Price",
-      flex: 1,
-      minWidth: 120,
+      flex: 1.5,
+      minWidth: 180,
       valueFormatter: (value) => {
         if (Array.isArray(value)) return value.join(", ");
-        if (typeof value === "object" && value !== null)
-          return JSON.stringify(value);
+        if (typeof value === "boolean") return value ? "Active" : "Inactive";
         return value;
       },
     },
@@ -126,18 +131,9 @@ const MenuPage = () => {
         </Button>
       </Box>
       <Paper sx={{ height: "75vh", width: "100%" }}>
-        <DataGrid
-          rows={menus || []}
-          columns={columns}
-          loading={isLoading}
-          initialState={{
-            pagination: { paginationModel: { page: 0, pageSize: 25 } },
-          }}
-          pageSizeOptions={[10, 25, 50]}
-        />
+        <DataGrid rows={menus || []} columns={columns} loading={isLoading} />
       </Paper>
 
-      {/* The modal is now active and controlled by the page's state */}
       <MenuFormModal
         open={isModalOpen}
         onClose={handleCloseModal}

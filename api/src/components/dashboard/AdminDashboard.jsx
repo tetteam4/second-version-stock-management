@@ -27,7 +27,6 @@ const AdminDashboard = () => {
   });
 
   const [usersResult, vendorsResult, productsResult, salesResult] = results;
-  // Safely default to an empty array if data is still fetching or undefined
   const allUsers = usersResult.data || [];
   const allVendors = vendorsResult.data || [];
   const allProducts = productsResult.data || [];
@@ -46,10 +45,6 @@ const AdminDashboard = () => {
 
   const userChartData = useMemo(() => {
     if (!allUsers || allUsers.length === 0) return [];
-
-    // --- FIX ---
-    // Your Profile model has a `created_at` field from the TimeStampedModel. We'll use that.
-    // The error occurred because the `allUsers` variable was not an array.
     const usersByDate = allUsers.reduce((acc, profile) => {
       const date = new Date(
         profile.created_at || Date.now()
@@ -79,7 +74,8 @@ const AdminDashboard = () => {
       </Typography>
 
       <Grid container spacing={3}>
-        <Grid item xs={12} sm={6} md={3}>
+        {/* --- FIX: Removed the 'item' prop for MUI v5+ compatibility --- */}
+        <Grid xs={12} sm={6} md={3}>
           <KpiCard
             title="Total Users"
             value={totalUsers}
@@ -87,7 +83,7 @@ const AdminDashboard = () => {
             isLoading={isLoading}
           />
         </Grid>
-        <Grid item xs={12} sm={6} md={3}>
+        <Grid xs={12} sm={6} md={3}>
           <KpiCard
             title="Total Vendors"
             value={totalVendors}
@@ -95,7 +91,7 @@ const AdminDashboard = () => {
             isLoading={isLoading}
           />
         </Grid>
-        <Grid item xs={12} sm={6} md={3}>
+        <Grid xs={12} sm={6} md={3}>
           <KpiCard
             title="Total Products"
             value={totalProducts}
@@ -103,7 +99,7 @@ const AdminDashboard = () => {
             isLoading={isLoading}
           />
         </Grid>
-        <Grid item xs={12} sm={6} md={3}>
+        <Grid xs={12} sm={6} md={3}>
           <KpiCard
             title="Total Revenue"
             value={`$${totalRevenue}`}
@@ -113,11 +109,11 @@ const AdminDashboard = () => {
           />
         </Grid>
 
-        <Grid item xs={12}>
+        <Grid xs={12}>
           <UserRegistrationsChart data={userChartData} />
         </Grid>
 
-        <Grid item xs={12}>
+        <Grid xs={12}>
           <UserManagementTable />
         </Grid>
       </Grid>

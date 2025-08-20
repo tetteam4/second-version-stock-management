@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { useForm, Controller } from "react-hook-form";
+import { useForm, Controller, useWatch } from "react-hook-form";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useSelector } from "react-redux";
 import {
@@ -9,97 +9,167 @@ import {
   DialogActions,
   TextField,
   Button,
-  Select,
-  MenuItem,
-  FormControl,
-  InputLabel,
   CircularProgress,
   Alert,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  Checkbox,
+  FormControlLabel,
 } from "@mui/material";
-
 import {
-  fetchCategories,
   createMenuItem,
   updateMenuItem,
+  fetchCategories,
 } from "../../api/restaurantApi";
 import { selectUser } from "../../features/auth/authSlice";
+
+const menuTypes = ["input", "dropdown", "checkbox"];
 
 const MenuFormModal = ({ open, onClose, menuItem }) => {
   const queryClient = useQueryClient();
   const user = useSelector(selectUser);
   const isEditMode = Boolean(menuItem);
-
-  // React Hook Form setup
   const {
     handleSubmit,
     control,
     reset,
     formState: { errors },
-  } = useForm();
-
-  // Fetch categories for the dropdown select
+  } = useForm({
+    defaultValues: {
+      name: "",
+      category: "",
+      menu_type: "input",
+      menu_value: "",
+    },
+  });
+  const selectedMenuType = useWatch({ control, name: "menu_type" });
   const { data: categories, isLoading: isLoadingCategories } = useQuery({
     queryKey: ["categories"],
     queryFn: fetchCategories,
-    enabled: open, // Only fetch when the modal is open
+    enabled: open,
   });
-
-  // Mutation for creating a menu item
-  const createMutation = useMutation({
-    mutationFn: createMenuItem,
+  const mutation = useMutation({
+    mutationFn: isEditMode ? updateMenuItem : createMenuItem,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["menus"] });
-      onClose(); // Close modal on success
+      onClose();
     },
   });
 
-  // Mutation for updating a menu item
-  const updateMutation = useMutation({
-    mutationFn: updateMenuItem,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["menus"] });
-      onClose(); // Close modal on success
-    },
-  });
-
-  // Use useEffect to populate the form when in edit mode
   useEffect(() => {
-    if (isEditMode) {
-      reset({
-        name: menuItem.name,
-        category: menuItem.category.id,
-        menu_type: menuItem.menu_type,
-        menu_value: menuItem.menu_value,
-      });
-    } else {
-      // Reset to default values for a new item
-      reset({
-        name: "",
-        category: "",
-        menu_type: "input",
-        menu_value: "0.00",
-      });
+    if (open) {
+      if (isEditMode) {
+        let formattedValue = menuItem.menu_value;
+        if (Array.isArray(formattedValue)) {
+          formattedValue = formattedValue.join(", ");
+        }
+        reset({
+          name: menuItem.name,
+          category: menuItem.category,
+          menu_type: menuItem.menu_type,
+          menu_value: String(formattedValue),
+        });
+      } else {
+        reset({ name: "", category: "", menu_type: "input", menu_value: "" });
+      }
     }
   }, [menuItem, isEditMode, reset, open]);
 
   const onSubmit = (data) => {
-    const vendorId = user?.vendor?.id; // Assuming the vendor info is in the user object
+    const vendorId = user?.vendor?.id;
     if (!vendorId) {
-      console.error("Vendor ID not found on user object");
-      // Here you could set a form error
+      alert("Error: Could not find Vendor ID for the current user.");
       return;
     }
-
-    const submissionData = { ...data, vendor: vendorId };
-
+    let finalMenuValue;
+    switch (data.menu_type) {
+      case "dropdown":
+        finalMenuValue = data.menu_value
+          .split(",")
+          .map((item) => item.trim())
+          .filter(Boolean);
+        break;
+      case "checkbox":
+        finalMenuValue = data.menu_value; // Already a boolean from the form
+        break;
+      case "input":
+      default:
+        finalMenuValue = data.menu_value;
+        break;
+    }
+    const submissionData = {
+      ...data,
+      menu_value: finalMenuValue,
+      vendor: vendorId,
+    };
     if (isEditMode) {
-      updateMutation.mutate({ id: menuItem.id, ...submissionData });
+      mutation.mutate({ id: menuItem.id, ...submissionData });
     } else {
-      createMutation.mutate(submissionData);
+      mutation.mutate(submissionData);
     }
   };
 
-  const mutation = isEditMode ? updateMutation : createMutation;
+  const renderMenuValueInput = () => {
+    switch (selectedMenuType) {
+      case "dropdown":
+        return (
+          <Controller
+            name="menu_value"
+            control={control}
+            rules={{ required: "Values are required" }}
+            render={({ field }) => (
+              <TextField
+                {...field}
+                label="Dropdown Values (comma-separated)"
+                fullWidth
+                margin="normal"
+                error={!!errors.menu_value}
+                helperText="e.g., Small, Medium, Large"
+              />
+            )}
+          />
+        );
+      case "checkbox":
+        return (
+          <FormControlLabel
+            control={
+              <Controller
+                name="menu_value"
+                control={control}
+                defaultValue={false}
+                render={({ field }) => (
+                  <Checkbox {...field} checked={!!field.value} />
+                )}
+              />
+            }
+            label="Is this option active?"
+          />
+        );
+      case "input":
+      default:
+        return (
+          <Controller
+            name="menu_value"
+            control={control}
+            rules={{ required: "Price is required" }}
+            render={({ field }) => (
+              <TextField
+                {...field}
+                label="Price"
+                type="number"
+                step="0.01"
+                fullWidth
+                margin="normal"
+                error={!!errors.menu_value}
+                helperText="e.g., 12.99"
+              />
+            )}
+          />
+        );
+    }
+  };
 
   return (
     <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
@@ -110,18 +180,17 @@ const MenuFormModal = ({ open, onClose, menuItem }) => {
         <DialogContent>
           {mutation.isError && (
             <Alert severity="error" sx={{ mb: 2 }}>
-              Error: {mutation.error.message}
+              Error: {JSON.stringify(mutation.error.response.data)}
             </Alert>
           )}
           <Controller
             name="name"
             control={control}
-            defaultValue=""
             rules={{ required: "Name is required" }}
             render={({ field }) => (
               <TextField
                 {...field}
-                label="Item Name"
+                label="Menu Item Name"
                 fullWidth
                 margin="normal"
                 error={!!errors.name}
@@ -134,7 +203,6 @@ const MenuFormModal = ({ open, onClose, menuItem }) => {
             <Controller
               name="category"
               control={control}
-              defaultValue=""
               rules={{ required: "Category is required" }}
               render={({ field }) => (
                 <Select
@@ -150,38 +218,24 @@ const MenuFormModal = ({ open, onClose, menuItem }) => {
                 </Select>
               )}
             />
-            {errors.category && (
-              <p
-                style={{
-                  color: "#d32f2f",
-                  fontSize: "0.75rem",
-                  margin: "3px 14px 0",
-                }}
-              >
-                {errors.category.message}
-              </p>
-            )}
           </FormControl>
-          <Controller
-            name="menu_value"
-            control={control}
-            defaultValue=""
-            rules={{ required: "Price/Value is required" }}
-            render={({ field }) => (
-              <TextField
-                {...field}
-                label="Price or Value"
-                fullWidth
-                margin="normal"
-                error={!!errors.menu_value}
-                helperText={
-                  errors.menu_value?.message ||
-                  "For items with a price, use a number (e.g., 12.99)"
-                }
-              />
-            )}
-          />
-          {/* Note: menu_type is hardcoded to 'input' for simplicity. You could add a Select for it here if needed. */}
+          <FormControl fullWidth margin="normal" error={!!errors.menu_type}>
+            <InputLabel>Menu Type</InputLabel>
+            <Controller
+              name="menu_type"
+              control={control}
+              render={({ field }) => (
+                <Select {...field} label="Menu Type">
+                  {menuTypes.map((type) => (
+                    <MenuItem key={type} value={type}>
+                      {type}
+                    </MenuItem>
+                  ))}
+                </Select>
+              )}
+            />
+          </FormControl>
+          {renderMenuValueInput()}
         </DialogContent>
         <DialogActions>
           <Button onClick={onClose}>Cancel</Button>

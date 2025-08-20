@@ -186,7 +186,6 @@ class Role(models.Model):
         # Return all roles as (key, label) tuples
         return list(cls.objects.values_list("key", "label"))
 
-
 class StaffManagement(Staff):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     vendor = models.ForeignKey(Vendor, on_delete=models.CASCADE, related_name="staff")

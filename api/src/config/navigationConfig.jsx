@@ -59,6 +59,13 @@ export const navigationConfig = [
     businessTypes: [], // For all
   },
   {
+    text: "My Profile",
+    path: "/profile",
+    icon: <AdminPanelSettingsIcon />,
+    roles: [], // Empty roles = for ALL authenticated users
+    businessTypes: [], // Empty businessTypes = for ALL business types
+  },
+  {
     text: "Admin Settings",
     path: "/admin/settings",
     icon: <AdminPanelSettingsIcon />,

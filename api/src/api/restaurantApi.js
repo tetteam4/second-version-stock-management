@@ -36,18 +36,38 @@ export const fetchCategories = async () => {
 };
 
 export const createCategory = async (categoryData) => {
-  // categoryData is an object like { name: "New Category Name" }
+  const formData = new FormData();
+  // Append each key-value pair from the categoryData object to the formData
+  for (const key in categoryData) {
+    formData.append(key, categoryData[key]);
+  }
+
   const { data } = await axiosInstance.post(
     "/restaurant/categories/",
-    categoryData
+    formData,
+    {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    }
   );
   return data;
 };
 
 export const updateCategory = async ({ id, ...categoryData }) => {
+  const formData = new FormData();
+  for (const key in categoryData) {
+    formData.append(key, categoryData[key]);
+  }
+
   const { data } = await axiosInstance.put(
     `/restaurant/categories/${id}/`,
-    categoryData
+    formData,
+    {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    }
   );
   return data;
 };

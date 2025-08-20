@@ -2,6 +2,7 @@ import React, { useEffect } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useSelector } from "react-redux";
+import { toast } from "react-hot-toast"; // <-- Import the toast object
 import {
   Dialog,
   DialogTitle,
@@ -10,9 +11,7 @@ import {
   TextField,
   Button,
   CircularProgress,
-  Alert,
 } from "@mui/material";
-
 import { createCategory, updateCategory } from "../../api/restaurantApi";
 import { selectUser } from "../../features/auth/authSlice";
 
@@ -30,8 +29,18 @@ const CategoryFormModal = ({ open, onClose, category }) => {
   const mutation = useMutation({
     mutationFn: isEditMode ? updateCategory : createCategory,
     onSuccess: () => {
+      // --- FIX: Show a success toast ---
+      toast.success(
+        `Category successfully ${isEditMode ? "updated" : "created"}!`
+      );
       queryClient.invalidateQueries({ queryKey: ["categories"] });
       onClose();
+    },
+    onError: (error) => {
+      // --- FIX: Show an error toast ---
+      const errorMsg =
+        error.response?.data?.detail || "An unexpected error occurred.";
+      toast.error(`Error: ${errorMsg}`);
     },
   });
 
@@ -45,25 +54,14 @@ const CategoryFormModal = ({ open, onClose, category }) => {
 
   const onSubmit = (data) => {
     const vendorId = user?.vendor?.id;
-
     if (!vendorId) {
-      console.error(
-        "Critical Error: Vendor ID is not available for the current user in Redux."
-      );
-      alert(
-        "Cannot create category: Vendor ID not found in your user profile."
-      );
+      toast.error("Could not create category: Vendor ID not found.");
       return;
     }
-
+    const submissionData = { ...data, vendor: vendorId };
     if (isEditMode) {
-      // For updates, DRF usually expects the field name for the relation.
-      const submissionData = { ...data, vendor: vendorId };
       mutation.mutate({ id: category.id, ...submissionData });
     } else {
-      // --- FIX ---
-      // For creation, the backend error explicitly asks for "vendor_id".
-      const submissionData = { ...data, vendor_id: vendorId };
       mutation.mutate(submissionData);
     }
   };
@@ -75,11 +73,6 @@ const CategoryFormModal = ({ open, onClose, category }) => {
       </DialogTitle>
       <form onSubmit={handleSubmit(onSubmit)}>
         <DialogContent>
-          {mutation.isError && (
-            <Alert severity="error" sx={{ mb: 2 }}>
-              Error: {JSON.stringify(mutation.error.response.data)}
-            </Alert>
-          )}
           <Controller
             name="name"
             control={control}
