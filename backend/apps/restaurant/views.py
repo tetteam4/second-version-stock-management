@@ -41,8 +41,6 @@ class CategoryViewSet(viewsets.ModelViewSet):
     parser_classes = (MultiPartParser, FormParser)
 
     def update(self, request, *args, **kwargs):
-        print("FILES:", request.FILES)
-        print("DATA:", request.data)
         return super().update(request, *args, **kwargs)
 
 

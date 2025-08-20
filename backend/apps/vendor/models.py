@@ -24,7 +24,7 @@ class Vendor(models.Model):
     description = models.TextField(null=True, blank=True)
     mobile = models.CharField(max_length=150, null=True, blank=True)
     verified = models.BooleanField(default=False)
-    active = models.BooleanField(default=True)
+    active = models.BooleanField(default=False)
     vid = ShortUUIDField(unique=True, length=10, max_length=20)
     date = models.DateTimeField(auto_now_add=True)
 
@@ -37,7 +37,6 @@ class Vendor(models.Model):
                 f'<img src="{self.image.url}" width="50" height="50" style="object-fit:cover; border-radius: 6px;" />'
             )
         return ""
-
     def __str__(self):
         return self.name or "Unnamed Vendor"
 
@@ -48,5 +47,4 @@ class Vendor(models.Model):
 
     def get_absolute_url(self):
         from django.urls import reverse
-
         return reverse("vendor_detail", kwargs={"slug": self.slug})

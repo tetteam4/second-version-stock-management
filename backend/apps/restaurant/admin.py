@@ -1,6 +1,14 @@
 from django.contrib import admin
 
-from .models import Category, Menu, MenuField, Order, OrderItem,Staff,StaffManagement
+from .models import (
+    Category,
+    Menu,
+    MenuField,
+    Order,
+    OrderItem,
+    RestaurantRole,
+    StaffManagement,
+)
 
 
 @admin.register(Category)
@@ -57,5 +65,28 @@ class OrderAdmin(admin.ModelAdmin):
 class OrderItemAdmin(admin.ModelAdmin):
     list_display = ["order", "menu", "quantity"]
     search_fields = ["order__customer", "menu__name"]
-# admin.site.register(Staff)
-admin.site.register(StaffManagement)
+
+
+@admin.register(StaffManagement)
+class StaffManagementAdmin(admin.ModelAdmin):
+    list_display = (
+        "id",
+        "user",
+        "vendor",
+        "role",
+        "salary",
+        "start_day",
+        "end_day",
+        "status",
+    )
+    list_filter = ("vendor", "role", "status")
+    search_fields = (
+        "user__username",
+        "user__email",
+        "user__first_name",
+        "user__last_name",
+    )
+    ordering = ("-start_day",)
+
+
+admin.site.register(RestaurantRole)

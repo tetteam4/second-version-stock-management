@@ -88,7 +88,7 @@ class Menu(TimeStampedModel):
                     {"menu_value": "For 'checkbox' type, menu_value must be a boolean."}
                 )
         elif self.menu_type == self.MenuChoiceType.INPUT:
-            if not isinstance(self.menu_value, str):
+            if not isinstance(self.menu_value, dict):
                 raise ValidationError(
                     {"menu_value": "For 'input' type, menu_value must be a string."}
                 )
@@ -149,9 +149,7 @@ class OrderItem(models.Model):
     menu = models.ForeignKey(Menu, on_delete=models.CASCADE, related_name="order_items")
     quantity = models.PositiveIntegerField(default=1)
     selected_option = models.JSONField(blank=True, null=True)
-    price = models.DecimalField(
-        max_digits=10, decimal_places=2
-    )  # Price per single item
+    price = models.DecimalField(max_digits=10, decimal_places=2)
 
     def clean(self):
         if self.quantity < 1:
@@ -174,7 +172,7 @@ class RoleType(models.TextChoices):
     CLEANER = "cleaner", "Cleaner"
 
 
-class Role(models.Model):
+class RestaurantRole(models.Model):
     key = models.CharField(max_length=50, unique=True)
     label = models.CharField(max_length=100)
 
@@ -189,16 +187,29 @@ class Role(models.Model):
 class StaffManagement(Staff):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     vendor = models.ForeignKey(Vendor, on_delete=models.CASCADE, related_name="staff")
-    role = models.ForeignKey(Role, on_delete=models.CASCADE, related_name="role")
+    role = models.ForeignKey(
+        RestaurantRole, on_delete=models.CASCADE, related_name="role"
+    )
 
     def __str__(self):
-        return f"{self.user.get_full_name()} - {self.role.label}"
+        user_name = (
+            self.user.get_full_name()
+            if callable(self.user.get_full_name)
+            else self.user.get_full_name
+        )
+        role_label = self.role.label() if callable(self.role.label) else self.role.label
+        return f"{user_name} - {role_label}"
 
 
-class MultiProductImages(models.Model):
+class MultiImages(models.Model):
     category = models.ForeignKey(
         Category, on_delete=models.CASCADE, related_name="multi_images"
     )
     image = models.ImageField(upload_to="category/", null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+
+class MenuImage(TimeStampedModel):
+    menu = models.ForeignKey(Menu, on_delete=models.CASCADE, related_name="images")
+    image = models.ImageField(upload_to="menu/")
