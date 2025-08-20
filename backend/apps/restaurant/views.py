@@ -2,6 +2,7 @@ from django.shortcuts import get_object_or_404, render
 
 # Create your views here.
 from rest_framework import generics, viewsets
+from rest_framework.parsers import FormParser, MultiPartParser
 from rest_framework.permissions import IsAuthenticated
 
 from .models import Category, Menu, MenuField, Order, StaffManagement
@@ -37,6 +38,12 @@ class CategoryViewSet(viewsets.ModelViewSet):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
     permission_classes = [IsAuthenticated]
+    parser_classes = (MultiPartParser, FormParser)
+
+    def update(self, request, *args, **kwargs):
+        print("FILES:", request.FILES)
+        print("DATA:", request.data)
+        return super().update(request, *args, **kwargs)
 
 
 class MenuViewSet(viewsets.ModelViewSet):
