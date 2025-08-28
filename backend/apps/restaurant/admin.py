@@ -1,21 +1,16 @@
 from django.contrib import admin
 
 from .models import (
-    Category,
     Menu,
     MenuField,
+    MultiImages,
     Order,
     OrderItem,
     RestaurantRole,
     StaffManagement,
 )
 
-
-@admin.register(Category)
-class CategoryAdmin(admin.ModelAdmin):
-    list_display = ("name", "vendor")
-    search_fields = ("name", "vendor__name")
-    ordering = ("name",)
+admin.site.register(MultiImages)
 
 
 class MenuFieldInline(admin.TabularInline):

@@ -1,34 +1,13 @@
-from apps.common.models import Location, Staff, TimeStampedModel
-from apps.table.models import Table
+from apps.category.models import Category
+from apps.common.models import Staff, TimeStampedModel
 from apps.vendor.models import Vendor
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.db.models import F, FloatField, Sum
-from django.utils.timezone import now
 from django.utils.translation import gettext_lazy as _
 
 User = get_user_model()
-
-
-class Category(TimeStampedModel):
-    vendor = models.ForeignKey(
-        Vendor,
-        on_delete=models.CASCADE,
-        related_name="vendor_categories",
-        null=False,
-        blank=False,
-    )
-    name = models.CharField(max_length=255)
-
-    class Meta:
-        verbose_name = _("Category")
-        verbose_name_plural = _("Categories")
-        ordering = ["name"]
-        unique_together = ("vendor", "name")
-
-    def __str__(self):
-        return self.name
 
 
 class Menu(TimeStampedModel):
@@ -209,6 +188,9 @@ class MultiImages(models.Model):
     image = models.ImageField(upload_to="category/", null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.category.name } - {self.image.url}"
 
 
 class MenuImage(TimeStampedModel):

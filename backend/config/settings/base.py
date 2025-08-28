@@ -19,9 +19,8 @@ DJANGO_INSTALLED_APPS = [
 ]
 
 LOCAL_APPS = [
-    "apps.categories",
+    "apps.category",
     "apps.users",
-    "apps.inventory",
     "apps.vendor",
     "apps.profiles",
     "apps.restaurant",

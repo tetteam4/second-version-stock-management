@@ -7,7 +7,6 @@ from rest_framework.permissions import IsAuthenticated
 
 from .models import Category, Menu, MenuField, Order, StaffManagement
 from .serializers import (
-    CategorySerializer,
     MenuFieldSerializer,
     MenuSerializer,
     OrderCreateSerializer,
@@ -32,16 +31,6 @@ class OrderListCreateView(generics.ListCreateAPIView):
         if self.request.method == "POST":
             return OrderCreateSerializer
         return OrderSerializer
-
-
-class CategoryViewSet(viewsets.ModelViewSet):
-    queryset = Category.objects.all()
-    serializer_class = CategorySerializer
-    permission_classes = [IsAuthenticated]
-    parser_classes = (MultiPartParser, FormParser)
-
-    def update(self, request, *args, **kwargs):
-        return super().update(request, *args, **kwargs)
 
 
 class MenuViewSet(viewsets.ModelViewSet):
