@@ -16,11 +16,14 @@ import DeleteIcon from "@mui/icons-material/Delete";
 
 import { fetchMenus, deleteMenuItem } from "../api/restaurantApi";
 import MenuFormModal from "../components/modals/MenuFormModal.jsx";
+import ConfirmDialog from "../components/common/ConfirmDialog.jsx";
 
 const MenuPage = () => {
   const queryClient = useQueryClient();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingMenuItem, setEditingMenuItem] = useState(null);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState(null);
 
   const {
     data: menus,
@@ -36,13 +39,19 @@ const MenuPage = () => {
     mutationFn: deleteMenuItem,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["menus"] });
+      // You should add toast notifications here for better UX
     },
   });
 
-  const handleDelete = (id) => {
-    if (window.confirm("Are you sure you want to delete this menu item?")) {
-      deleteMutation.mutate(id);
-    }
+  const handleDeleteClick = (id) => {
+    setItemToDelete(id);
+    setConfirmOpen(true);
+  };
+
+  const handleConfirmDelete = () => {
+    deleteMutation.mutate(itemToDelete);
+    setConfirmOpen(false);
+    setItemToDelete(null);
   };
 
   const handleOpenModal = (menuItem = null) => {
@@ -72,12 +81,24 @@ const MenuPage = () => {
     },
     {
       field: "menu_value",
-      headerName: "Value / Price",
+      headerName: "Value / Details",
       flex: 1.5,
-      minWidth: 180,
+      minWidth: 200,
+      // --- FIX: This valueFormatter is now smarter ---
       valueFormatter: (value) => {
-        if (Array.isArray(value)) return value.join(", ");
-        if (typeof value === "boolean") return value ? "Active" : "Inactive";
+        if (Array.isArray(value)) {
+          return value.join(", ");
+        }
+        if (typeof value === "boolean") {
+          return value ? "Active" : "Inactive";
+        }
+        // If it's an object (but not an array or null), format it nicely.
+        if (typeof value === "object" && value !== null) {
+          return Object.entries(value)
+            .map(([key, val]) => `${key}: ${val}`)
+            .join(" | "); // e.g., "price: 15.99 | SKU: 123"
+        }
+        // Otherwise, just return the value as is.
         return value;
       },
     },
@@ -92,7 +113,7 @@ const MenuPage = () => {
             <EditIcon />
           </IconButton>
           <IconButton
-            onClick={() => handleDelete(params.row.id)}
+            onClick={() => handleDeleteClick(params.row.id)}
             color="error"
             size="small"
           >
@@ -138,6 +159,15 @@ const MenuPage = () => {
         open={isModalOpen}
         onClose={handleCloseModal}
         menuItem={editingMenuItem}
+      />
+
+      {/* Added the confirmation dialog for deletions */}
+      <ConfirmDialog
+        open={confirmOpen}
+        onClose={() => setConfirmOpen(false)}
+        onConfirm={handleConfirmDelete}
+        title="Delete Menu Item?"
+        message="Are you sure you want to delete this item? This action cannot be undone."
       />
     </Box>
   );

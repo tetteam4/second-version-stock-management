@@ -36,7 +36,7 @@ class CategorySerializer(serializers.ModelSerializer):
     vendor_id = serializers.PrimaryKeyRelatedField(
         queryset=Vendor.objects.all(), source="vendor", write_only=True
     )
-
+    vendor = serializers.PrimaryKeyRelatedField(read_only=True)
     multi_images = MultiImagesSerializer(many=True, read_only=True)
 
     uploaded_images = serializers.ListField(
@@ -51,6 +51,7 @@ class CategorySerializer(serializers.ModelSerializer):
         model = Category
         fields = [
             "id",
+            "vendor",
             "vendor_id",
             "name",
             "multi_images",
@@ -265,14 +266,11 @@ class OrderSerializer(serializers.ModelSerializer):
 
         return instance
 
-
 class OrderCreateSerializer(serializers.ModelSerializer):
     items = OrderItemSerializer(many=True)
-
     class Meta:
         model = Order
         fields = ["customer", "vendor", "status", "notes", "items"]
-
     def create(self, validated_data):
         items_data = validated_data.pop("items")
         order = Order.objects.create(**validated_data)

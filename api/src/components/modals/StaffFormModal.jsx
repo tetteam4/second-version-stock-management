@@ -44,7 +44,9 @@ const StaffFormModal = ({ open, onClose, staffMember }) => {
         if (!allProfiles) return [];
         if (isEditMode) return allProfiles; // No need to filter in edit mode
 
-        const staffUserIds = new Set(staffList.map(s => s.user));
+   const staffUserIds = new Set(
+     Array.isArray(staffList) ? staffList.map((s) => s.user) : []
+   );
         // Filter profiles where the nested user_id is not in the staff list
         return allProfiles.filter(profile => !staffUserIds.has(profile.user_id));
     }, [allProfiles, staffList, isEditMode]);
@@ -60,7 +62,7 @@ const StaffFormModal = ({ open, onClose, staffMember }) => {
             toast.error(`Error: ${JSON.stringify(error.response.data)}`);
         }
     });
-
+// ddddd
     useEffect(() => {
         if (open) {
             if (isEditMode && staffMember) {
@@ -90,7 +92,6 @@ const StaffFormModal = ({ open, onClose, staffMember }) => {
         }
     };
     
-    // Finds the full profile details for display in edit mode
     const editModeUserDetails = useMemo(() => {
         if (!isEditMode || !allProfiles || !staffMember) return null;
         return allProfiles.find(p => p.user_id === staffMember.user);

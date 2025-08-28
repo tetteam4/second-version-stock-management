@@ -1,8 +1,8 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useSelector } from "react-redux";
-import { toast } from "react-hot-toast"; // <-- Import the toast object
+import { toast } from "react-hot-toast";
 import {
   Dialog,
   DialogTitle,
@@ -11,7 +11,16 @@ import {
   TextField,
   Button,
   CircularProgress,
+  Box,
+  IconButton,
+  Typography,
+  Grid,
+  Checkbox,
+  FormControlLabel,
+  Avatar,
 } from "@mui/material";
+import DeleteIcon from "@mui/icons-material/Delete";
+
 import { createCategory, updateCategory } from "../../api/restaurantApi";
 import { selectUser } from "../../features/auth/authSlice";
 
@@ -19,47 +28,66 @@ const CategoryFormModal = ({ open, onClose, category }) => {
   const queryClient = useQueryClient();
   const isEditMode = Boolean(category);
   const user = useSelector(selectUser);
-  const {
-    handleSubmit,
-    control,
-    reset,
-    formState: { errors },
-  } = useForm();
+  const { handleSubmit, control, reset, setValue } = useForm();
+
+  const [keptImageIds, setKeptImageIds] = useState([]);
+  const [newImages, setNewImages] = useState([]);
+
+  useEffect(() => {
+    if (open) {
+      if (isEditMode && category) {
+        reset({ name: category.name });
+        // When editing, initialize keptImageIds with all existing image IDs
+        setKeptImageIds(category.multi_images.map((img) => img.id));
+      } else {
+        reset({ name: "" });
+        setKeptImageIds([]);
+      }
+      setNewImages([]); // Always clear new images when modal opens
+    }
+  }, [category, isEditMode, reset, open]);
 
   const mutation = useMutation({
     mutationFn: isEditMode ? updateCategory : createCategory,
     onSuccess: () => {
-      // --- FIX: Show a success toast ---
       toast.success(
-        `Category successfully ${isEditMode ? "updated" : "created"}!`
+        `Category successfully ${isEditMode ? "updated" : "created"}.`
       );
       queryClient.invalidateQueries({ queryKey: ["categories"] });
       onClose();
     },
-    onError: (error) => {
-      // --- FIX: Show an error toast ---
-      const errorMsg =
-        error.response?.data?.detail || "An unexpected error occurred.";
-      toast.error(`Error: ${errorMsg}`);
-    },
+    onError: (error) =>
+      toast.error(`Error: ${JSON.stringify(error.response.data)}`),
   });
 
-  useEffect(() => {
-    if (isEditMode) {
-      reset({ name: category.name });
-    } else {
-      reset({ name: "" });
+  const handleFileChange = (event) => {
+    if (event.target.files) {
+      setNewImages(Array.from(event.target.files));
     }
-  }, [category, isEditMode, reset, open]);
+  };
+
+  const handleToggleKeptImage = (id) => {
+    setKeptImageIds((prev) =>
+      prev.includes(id) ? prev.filter((keptId) => keptId !== id) : [...prev, id]
+    );
+  };
 
   const onSubmit = (data) => {
     const vendorId = user?.vendor?.id;
     if (!vendorId) {
-      toast.error("Could not create category: Vendor ID not found.");
+      toast.error("Vendor ID not found.");
       return;
     }
-    const submissionData = { ...data, vendor: vendorId };
+
+    const submissionData = {
+      ...data,
+      vendor_id: vendorId,
+      uploaded_images: newImages,
+    };
+
     if (isEditMode) {
+      // The backend expects a comma-separated string for kept_image_ids
+      submissionData.kept_image_ids = keptImageIds.join(",");
       mutation.mutate({ id: category.id, ...submissionData });
     } else {
       mutation.mutate(submissionData);
@@ -76,7 +104,6 @@ const CategoryFormModal = ({ open, onClose, category }) => {
           <Controller
             name="name"
             control={control}
-            defaultValue=""
             rules={{ required: "Category name is required" }}
             render={({ field }) => (
               <TextField
@@ -85,11 +112,41 @@ const CategoryFormModal = ({ open, onClose, category }) => {
                 label="Category Name"
                 fullWidth
                 margin="normal"
-                error={!!errors.name}
-                helperText={errors.name?.message}
               />
             )}
           />
+          <Typography sx={{ mt: 2 }}>Upload Images</Typography>
+          <Button variant="contained" component="label">
+            Select Files
+            <input type="file" hidden multiple onChange={handleFileChange} />
+          </Button>
+          <Typography variant="caption" display="block">
+            {newImages.length} new file(s) selected.
+          </Typography>
+
+          {isEditMode && category?.multi_images.length > 0 && (
+            <Box sx={{ mt: 2 }}>
+              <Typography>Manage Existing Images</Typography>
+              <Grid container spacing={2}>
+                {category.multi_images.map((image) => (
+                  <Grid item key={image.id}>
+                    <Box sx={{ position: "relative" }}>
+                      <Avatar
+                        variant="rounded"
+                        src={image.image}
+                        sx={{ width: 80, height: 80 }}
+                      />
+                      <Checkbox
+                        checked={keptImageIds.includes(image.id)}
+                        onChange={() => handleToggleKeptImage(image.id)}
+                        sx={{ position: "absolute", top: -10, right: -10 }}
+                      />
+                    </Box>
+                  </Grid>
+                ))}
+              </Grid>
+            </Box>
+          )}
         </DialogContent>
         <DialogActions>
           <Button onClick={onClose}>Cancel</Button>

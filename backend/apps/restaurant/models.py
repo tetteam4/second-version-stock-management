@@ -7,9 +7,7 @@ from django.db import models
 from django.db.models import F, FloatField, Sum
 from django.utils.timezone import now
 from django.utils.translation import gettext_lazy as _
-
 User = get_user_model()
-
 
 class Category(TimeStampedModel):
     vendor = models.ForeignKey(
@@ -19,23 +17,22 @@ class Category(TimeStampedModel):
         null=False,
         blank=False,
     )
-    name = models.CharField(max_length=255)
 
+    name = models.CharField(max_length=255)
     class Meta:
         verbose_name = _("Category")
         verbose_name_plural = _("Categories")
         ordering = ["name"]
         unique_together = ("vendor", "name")
-
     def __str__(self):
         return self.name
-   
 
 class Menu(TimeStampedModel):
     class MenuChoiceType(models.TextChoices):
         DROPDOWN = "dropdown", "Dropdown"
         CHECKBOX = "checkbox", "Checkbox"
-        INPUT = "input", "Input"
+        INPUT = "input", "Input"\
+
 
     name = models.CharField(max_length=50)
     category = models.ForeignKey(
