@@ -1,3 +1,4 @@
+from apps.category.models import AttributeType
 from apps.users.serializers import UserSerializer
 from apps.vendor.models import Vendor
 from apps.vendor.serializers import VendorSerializer
@@ -6,9 +7,7 @@ from django.core.exceptions import ValidationError
 from rest_framework import serializers
 
 from .models import (
-    Category,
     Menu,
-    MenuField,
     MenuImage,
     MultiImages,
     Order,
@@ -32,93 +31,23 @@ class MultiImagesSerializer(serializers.ModelSerializer):
         fields = ["id", "category", "image", "created_at", "updated_at"]
 
 
-class MenuFieldSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = MenuField
-        fields = ["id", "menu", "field_name"]
-
-
 class MenuSerializer(serializers.ModelSerializer):
-    custom_fields = MenuFieldSerializer(many=True, read_only=True)
-    images = MenuImageSerializer(many=True, read_only=True)
-    uploaded_images = serializers.ListField(
-        child=serializers.ImageField(
-            max_length=100000, allow_empty_file=False, use_url=False
-        ),
-        write_only=True,
-        required=False,
+    attributes = serializers.PrimaryKeyRelatedField(
+        queryset=AttributeType.objects.all(), many=True
     )
 
     class Meta:
         model = Menu
         fields = [
             "id",
-            "name",
-            "category",
             "vendor",
-            "menu_value",
-            "menu_type",
-            "images",
-            "uploaded_images",
-            "custom_fields",
+            "category",
+            "name",
+            "choice_type",
+            "attributes",
             "created_at",
             "updated_at",
         ]
-
-    read_only_fields = ["created_at", "updated_at"]
-
-    def validate(self, data):
-        data_copy = data.copy()
-        data_copy.pop("uploaded_images", None)
-
-        instance = Menu(**data_copy)
-        try:
-            instance.clean()
-        except ValidationError as e:
-            raise serializers.ValidationError(e.message_dict)
-        return data
-
-    def create(self, validated_data):
-        images = validated_data.pop("uploaded_images", [])
-        menu = Menu.objects.create(**validated_data)
-        for image in images:
-            MenuImage.objects.create(menu=menu, image=image)
-        return menu
-
-    def update(self, instance, validated_data):
-        uploaded_images = validated_data.pop("uploaded_images", [])
-        instance = super().update(instance, validated_data)
-
-        # Get existing image IDs
-        existing_ids = [img.id for img in instance.images.all()]
-
-        # Get kept_image_ids from request (not validated_data)
-        kept_ids_raw = self.context["request"].data.get("kept_image_ids", "")
-        if isinstance(kept_ids_raw, str):
-            kept_ids = list(map(int, filter(None, kept_ids_raw.split(","))))
-        elif isinstance(kept_ids_raw, list):
-            kept_ids = list(map(int, kept_ids_raw))
-        else:
-            kept_ids = []
-
-        # Save new uploaded images
-        for img in uploaded_images:
-            MenuImage.objects.create(menu=instance, image=img)
-
-        # Delete images not in kept_ids
-        to_remove = set(existing_ids) - set(kept_ids)
-        if to_remove:
-            MenuImage.objects.filter(menu=instance, id__in=to_remove).delete()
-
-        return instance
-
-    def __init__(self, *args, **kwargs):
-        super(MenuSerializer, self).__init__(*args, **kwargs)
-        request = self.context.get("request")
-        if request and request.method == "POST":
-            self.Meta.depth = 0
-        else:
-            self.Meta.depth = 1
 
 
 class OrderItemSerializer(serializers.ModelSerializer):

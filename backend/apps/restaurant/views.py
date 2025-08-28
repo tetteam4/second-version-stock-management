@@ -5,9 +5,8 @@ from rest_framework import generics, viewsets
 from rest_framework.parsers import FormParser, MultiPartParser
 from rest_framework.permissions import IsAuthenticated
 
-from .models import Category, Menu, MenuField, Order, StaffManagement
+from .models import Menu, Order, StaffManagement
 from .serializers import (
-    MenuFieldSerializer,
     MenuSerializer,
     OrderCreateSerializer,
     OrderSerializer,
@@ -36,12 +35,6 @@ class OrderListCreateView(generics.ListCreateAPIView):
 class MenuViewSet(viewsets.ModelViewSet):
     queryset = Menu.objects.all()
     serializer_class = MenuSerializer
-    permission_classes = [IsAuthenticated]
-
-
-class MenuFieldViewSet(viewsets.ModelViewSet):
-    queryset = MenuField.objects.all()
-    serializer_class = MenuFieldSerializer
     permission_classes = [IsAuthenticated]
 
 

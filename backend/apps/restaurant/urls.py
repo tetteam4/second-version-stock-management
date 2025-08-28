@@ -5,7 +5,6 @@ from . import views
 
 router = DefaultRouter()
 router.register("menus", views.MenuViewSet)
-router.register("menu-fields", views.MenuFieldViewSet)
 router.register("orders", views.OrderViewSet)
 router.register("staff", views.StaffManagementViewSet, basename="staffmanagement")
 urlpatterns = [

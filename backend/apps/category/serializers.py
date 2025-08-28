@@ -79,6 +79,9 @@ class AttributeTypeSerializer(serializers.ModelSerializer):
         choices=AttributeType.ATTRIBUTE_CHOICE_TYPE,
         default="select attribute type",
     )
+    vendor_id = serializers.PrimaryKeyRelatedField(
+        queryset=Vendor.objects.all(), source="vendor", write_only=True
+    )
 
     class Meta:
         model = AttributeType
@@ -86,6 +89,7 @@ class AttributeTypeSerializer(serializers.ModelSerializer):
             "id",
             "name",
             "category",
+            "vendor_id",
             "attribute_type",
             "created_at",
             "updated_at",
@@ -94,6 +98,9 @@ class AttributeTypeSerializer(serializers.ModelSerializer):
 
 class AttributeValueSerializer(serializers.ModelSerializer):
     attribute = serializers.PrimaryKeyRelatedField(queryset=AttributeType.objects.all())
+    vendor_id = serializers.PrimaryKeyRelatedField(
+        queryset=Vendor.objects.all(), source="vendor", write_only=True
+    )
 
     class Meta:
         model = AttributeValue
@@ -101,6 +108,7 @@ class AttributeValueSerializer(serializers.ModelSerializer):
             "id",
             "attribute",
             "attribute_value",
+            "vendor_id",
             "created_at",
             "updated_at",
         ]

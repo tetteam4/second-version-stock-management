@@ -1,4 +1,4 @@
-from apps.category.models import Category
+from apps.category.models import AttributeType, Category
 from apps.common.models import Staff, TimeStampedModel
 from apps.vendor.models import Vendor
 from django.contrib.auth import get_user_model
@@ -16,82 +16,35 @@ class Menu(TimeStampedModel):
         CHECKBOX = "checkbox", "Checkbox"
         INPUT = "input", "Input"
 
-    name = models.CharField(max_length=50)
+    vendor = models.ForeignKey(
+        Vendor,
+        on_delete=models.CASCADE,
+        related_name="menus",
+    )
     category = models.ForeignKey(
-        Category, on_delete=models.CASCADE, related_name="menu_types"
+        Category,
+        on_delete=models.CASCADE,
+        related_name="menus",
     )
-    vendor = models.ForeignKey(Vendor, on_delete=models.CASCADE, related_name="menus")
-    menu_value = models.JSONField()
-    menu_type = models.CharField(
-        max_length=10,
+    name = models.CharField(max_length=255)
+    choice_type = models.CharField(
+        max_length=20,
         choices=MenuChoiceType.choices,
-        default=MenuChoiceType.INPUT,
+        default=MenuChoiceType.DROPDOWN,
     )
+    attributes = models.ManyToManyField(
+        AttributeType,
+        related_name="menus",
+        blank=True,
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return f"{self.name} ({self.category.name})"
-
-    def clean(self):
-        # Skip validation if vendor or category.vendor is not yet assigned (e.g. during admin form save)
-        if not self.vendor or not self.category or not self.category.vendor:
-            super().clean()
-            return
-
-        if self.vendor != self.category.vendor:
-            raise ValidationError(
-                {
-                    "vendor": f"Vendor mismatch: Menu vendor '{self.vendor}' must match category vendor '{self.category.vendor}'."
-                }
-            )
-
-        existing = Menu.objects.filter(
-            name=self.name,
-            category=self.category,
-        ).exclude(pk=self.pk)
-
-        if existing.exists():
-            raise ValidationError(
-                {
-                    "name": f"A menu named '{self.name}' already exists in category '{self.category.name}'."
-                }
-            )
-
-        if self.menu_type == self.MenuChoiceType.DROPDOWN:
-            if not isinstance(self.menu_value, list):
-                raise ValidationError(
-                    {"menu_value": "For 'dropdown' type, menu_value must be a list."}
-                )
-        elif self.menu_type == self.MenuChoiceType.CHECKBOX:
-            if not isinstance(self.menu_value, bool):
-                raise ValidationError(
-                    {"menu_value": "For 'checkbox' type, menu_value must be a boolean."}
-                )
-        elif self.menu_type == self.MenuChoiceType.INPUT:
-            if not isinstance(self.menu_value, dict):
-                raise ValidationError(
-                    {"menu_value": "For 'input' type, menu_value must be a string."}
-                )
-
-        super().clean()
+        return f"{self.name} ({self.vendor})"
 
     class Meta:
-        unique_together = ["name", "category"]
-        ordering = ["-category"]
-
-
-class MenuField(models.Model):
-    menu = models.ForeignKey(
-        Menu, related_name="custom_fields", on_delete=models.CASCADE
-    )
-    field_name = models.CharField(max_length=255)
-
-    def __str__(self):
-        return f"{self.field_name}"
-
-    class Meta:
-
-        verbose_name = "Menu Custom Field"
-        verbose_name_plural = "Menu Custom Fields"
+        unique_together = ("vendor", "name")
 
 
 class Order(TimeStampedModel):
