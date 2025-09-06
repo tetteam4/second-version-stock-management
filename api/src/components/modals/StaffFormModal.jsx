@@ -106,6 +106,7 @@ const StaffFormModal = ({ open, onClose, staffMember }) => {
                     
                     <FormControl fullWidth margin="normal" error={!!errors.user}>
                         <InputLabel>User</InputLabel>
+                        
                         <Controller
                             name="user"
                             control={control}
@@ -128,7 +129,6 @@ const StaffFormModal = ({ open, onClose, staffMember }) => {
                         />
                          {errors.user && <p style={{ color: '#d32f2f', fontSize: '0.75rem', margin: '3px 14px 0' }}>{errors.user.message}</p>}
                     </FormControl>
-
                     <FormControl fullWidth margin="normal" error={!!errors.role}>
                         <InputLabel>Role</InputLabel>
                         <Controller
@@ -145,7 +145,6 @@ const StaffFormModal = ({ open, onClose, staffMember }) => {
                         />
                         {errors.role && <p style={{ color: '#d32f2f', fontSize: '0.75rem', margin: '3px 14px 0' }}>{errors.role.message}</p>}
                     </FormControl>
-
                     <Controller
                         name="salary"
                         control={control}
@@ -154,6 +153,7 @@ const StaffFormModal = ({ open, onClose, staffMember }) => {
                             <TextField {...field} label="Salary" type="number" fullWidth margin="normal" error={!!errors.salary} helperText={errors.salary?.message}/>
                         )}
                     />
+
                     <Controller
                         name="start_day"
                         control={control}
@@ -162,6 +162,7 @@ const StaffFormModal = ({ open, onClose, staffMember }) => {
                             <TextField {...field} label="Start Day" type="date" fullWidth margin="normal" error={!!errors.start_day} helperText={errors.start_day?.message} InputLabelProps={{ shrink: true }}/>
                         )}
                     />
+
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={onClose}>Cancel</Button>
