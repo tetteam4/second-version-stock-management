@@ -74,7 +74,6 @@ const AdminDashboard = () => {
       </Typography>
 
       <Grid container spacing={3}>
-        {/* --- FIX: Removed the 'item' prop for MUI v5+ compatibility --- */}
         <Grid xs={12} sm={6} md={3}>
           <KpiCard
             title="Total Users"
