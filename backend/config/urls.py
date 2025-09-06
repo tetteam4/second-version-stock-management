@@ -18,10 +18,10 @@ urlpatterns = [
         name="redoc",
     ),
     path("api/v1/auth/", include("apps.users.urls"), name="auth"),
-    path("api/v1/inventory/", include("apps.inventory.urls"), name="inventory"),
     path("api/v1/vendor/", include("apps.vendor.urls"), name="vendor"),
     path("api/v1/profiles/", include("apps.profiles.urls"), name="profiles"),
     path("api/v1/restaurant/", include("apps.restaurant.urls"), name="restaurant"),
+    path("api/v1/category/", include("apps.category.urls"), name="category"),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 
 admin.site.site_header = "Stock management system  Admin"
