@@ -1,15 +1,21 @@
 from apps.restaurant.models import MultiImages
 from apps.restaurant.serializers import MultiImagesSerializer
 from apps.vendor.models import Vendor
+from django.contrib.auth import get_user_model
 from rest_framework import serializers
 
-from .models import AttributeType, AttributeValue, Category
+from .models import AttributeType, AttributeValue, Category, Menu
+
+User = get_user_model()
+import json
 
 
 class CategorySerializer(serializers.ModelSerializer):
-    stages = serializers.ListField(child=serializers.CharField())
     vendor_id = serializers.PrimaryKeyRelatedField(
         queryset=Vendor.objects.all(), source="vendor", write_only=True
+    )
+    owner_id = serializers.PrimaryKeyRelatedField(
+        queryset=User.objects.all(), source="owner", write_only=True
     )
 
     multi_images = MultiImagesSerializer(many=True, read_only=True)
@@ -28,7 +34,7 @@ class CategorySerializer(serializers.ModelSerializer):
             "id",
             "vendor_id",
             "name",
-            "stages",
+            "owner_id",
             "created_at",
             "multi_images",
             "uploaded_images",
@@ -112,3 +118,11 @@ class AttributeValueSerializer(serializers.ModelSerializer):
             "created_at",
             "updated_at",
         ]
+
+
+class MenuSerializer(serializers.ModelSerializer):
+    attributes = serializers.JSONField()
+
+    class Meta:
+        model = Menu
+        fields = ["id", "category", "vendor", "attributes", "is_available", "image"]

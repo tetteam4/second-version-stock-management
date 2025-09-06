@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import  MultiImages, Order, OrderItem, RestaurantRole, StaffManagement
+from .models import MultiImages, Order, OrderItem, RestaurantRole, StaffManagement
 
 admin.site.register(MultiImages)
 
@@ -18,12 +18,6 @@ class OrderAdmin(admin.ModelAdmin):
     search_fields = ["customer", "vendor__name"]
     readonly_fields = ["created_at", "updated_at"]
     inlines = [OrderItemInline]
-
-
-@admin.register(OrderItem)
-class OrderItemAdmin(admin.ModelAdmin):
-    list_display = ["order", "menu", "quantity"]
-    search_fields = ["order__customer", "menu__name"]
 
 
 @admin.register(StaffManagement)

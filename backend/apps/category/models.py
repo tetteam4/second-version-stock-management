@@ -1,6 +1,9 @@
 from apps.vendor.models import Vendor
+from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from django.db import models
+
+User = get_user_model()
 
 
 class Category(models.Model):
@@ -12,7 +15,7 @@ class Category(models.Model):
         blank=False,
     )
     name = models.CharField(max_length=255)
-    stages = models.JSONField(default=list)
+    owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name="categories")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -94,3 +97,18 @@ class AttributeValue(models.Model):
 
     class Meta:
         unique_together = ["attribute", "attribute_value"]
+
+
+class Menu(models.Model):
+    category = models.ForeignKey(
+        Category, on_delete=models.CASCADE, related_name="menu_items"
+    )
+    vendor = models.ForeignKey(
+        Vendor, on_delete=models.CASCADE, related_name="menu_items"
+    )
+    attributes = models.JSONField(default=dict)
+    is_available = models.BooleanField(default=True)
+    image = models.ImageField(upload_to="menu_images/", blank=True, null=True)
+
+    def __str__(self):
+        return self.category.name

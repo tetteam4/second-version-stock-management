@@ -1,14 +1,15 @@
 from django.shortcuts import render
-from rest_framework import generics, status
+from rest_framework import generics, permissions, status, viewsets
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from .models import AttributeType, AttributeValue, Category
+from .models import AttributeType, AttributeValue, Category, Menu
 from .serializers import (
     AttributeTypeSerializer,
     AttributeValueSerializer,
     CategorySerializer,
+    MenuSerializer,
 )
 
 
@@ -124,3 +125,31 @@ class CategoryAttributeView(generics.GenericAPIView):
         }
 
         return Response(response_data, status=status.HTTP_200_OK)
+
+
+class MenuViewSet(viewsets.ModelViewSet):
+    queryset = Menu.objects.all()
+    serializer_class = MenuSerializer
+    # permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        """
+        Optionally filter menus by vendor or category from query params.
+        """
+        queryset = super().get_queryset()
+        vendor_id = self.request.query_params.get("vendor")
+        category_id = self.request.query_params.get("category")
+
+        if vendor_id:
+            queryset = queryset.filter(vendor_id=vendor_id)
+        if category_id:
+            queryset = queryset.filter(category_id=category_id)
+
+        return queryset
+
+    def perform_create(self, serializer):
+        # Optionally attach the current user or vendor if needed here
+        serializer.save()
+
+    def perform_update(self, serializer):
+        serializer.save()

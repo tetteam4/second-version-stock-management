@@ -5,37 +5,8 @@ from rest_framework import generics, viewsets
 from rest_framework.parsers import FormParser, MultiPartParser
 from rest_framework.permissions import IsAuthenticated
 
-from .models import Menu, Order, StaffManagement
-from .serializers import (
-    MenuSerializer,
-    OrderCreateSerializer,
-    OrderSerializer,
-    StaffManagementSerializer,
-)
-
-
-class OrderViewSet(viewsets.ModelViewSet):
-    queryset = Order.objects.all()
-    serializer_class = OrderSerializer
-    permission_classes = [IsAuthenticated]
-
-
-# List & Create Orders
-class OrderListCreateView(generics.ListCreateAPIView):
-    queryset = (
-        Order.objects.all().select_related("vendor").prefetch_related("items__menu")
-    )
-
-    def get_serializer_class(self):
-        if self.request.method == "POST":
-            return OrderCreateSerializer
-        return OrderSerializer
-
-
-class MenuViewSet(viewsets.ModelViewSet):
-    queryset = Menu.objects.all()
-    serializer_class = MenuSerializer
-    permission_classes = [IsAuthenticated]
+from .models import StaffManagement
+from .serializers import StaffManagementSerializer
 
 
 class StaffManagementViewSet(viewsets.ModelViewSet):
