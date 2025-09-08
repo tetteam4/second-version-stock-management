@@ -44,7 +44,9 @@ const StaffFormModal = ({ open, onClose, staffMember }) => {
         if (!allProfiles) return [];
         if (isEditMode) return allProfiles; // No need to filter in edit mode
 
-        const staffUserIds = new Set(staffList.map(s => s.user));
+   const staffUserIds = new Set(
+     Array.isArray(staffList) ? staffList.map((s) => s.user) : []
+   );
         // Filter profiles where the nested user_id is not in the staff list
         return allProfiles.filter(profile => !staffUserIds.has(profile.user_id));
     }, [allProfiles, staffList, isEditMode]);
@@ -60,7 +62,7 @@ const StaffFormModal = ({ open, onClose, staffMember }) => {
             toast.error(`Error: ${JSON.stringify(error.response.data)}`);
         }
     });
-
+// ddddd
     useEffect(() => {
         if (open) {
             if (isEditMode && staffMember) {
@@ -90,7 +92,6 @@ const StaffFormModal = ({ open, onClose, staffMember }) => {
         }
     };
     
-    // Finds the full profile details for display in edit mode
     const editModeUserDetails = useMemo(() => {
         if (!isEditMode || !allProfiles || !staffMember) return null;
         return allProfiles.find(p => p.user_id === staffMember.user);
@@ -105,6 +106,7 @@ const StaffFormModal = ({ open, onClose, staffMember }) => {
                     
                     <FormControl fullWidth margin="normal" error={!!errors.user}>
                         <InputLabel>User</InputLabel>
+                        
                         <Controller
                             name="user"
                             control={control}
@@ -127,7 +129,6 @@ const StaffFormModal = ({ open, onClose, staffMember }) => {
                         />
                          {errors.user && <p style={{ color: '#d32f2f', fontSize: '0.75rem', margin: '3px 14px 0' }}>{errors.user.message}</p>}
                     </FormControl>
-
                     <FormControl fullWidth margin="normal" error={!!errors.role}>
                         <InputLabel>Role</InputLabel>
                         <Controller
@@ -144,7 +145,6 @@ const StaffFormModal = ({ open, onClose, staffMember }) => {
                         />
                         {errors.role && <p style={{ color: '#d32f2f', fontSize: '0.75rem', margin: '3px 14px 0' }}>{errors.role.message}</p>}
                     </FormControl>
-
                     <Controller
                         name="salary"
                         control={control}
@@ -153,6 +153,7 @@ const StaffFormModal = ({ open, onClose, staffMember }) => {
                             <TextField {...field} label="Salary" type="number" fullWidth margin="normal" error={!!errors.salary} helperText={errors.salary?.message}/>
                         )}
                     />
+
                     <Controller
                         name="start_day"
                         control={control}
@@ -161,6 +162,7 @@ const StaffFormModal = ({ open, onClose, staffMember }) => {
                             <TextField {...field} label="Start Day" type="date" fullWidth margin="normal" error={!!errors.start_day} helperText={errors.start_day?.message} InputLabelProps={{ shrink: true }}/>
                         )}
                     />
+
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={onClose}>Cancel</Button>

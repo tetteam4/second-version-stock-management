@@ -6,7 +6,6 @@ from django.core.exceptions import ValidationError
 from django.db import models
 from django.db.models import F, FloatField, Sum
 from django.utils.translation import gettext_lazy as _
-
 User = get_user_model()
 
 
