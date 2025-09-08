@@ -25,7 +25,7 @@ const AdminDashboard = () => {
       { queryKey: ["allSales"], queryFn: fetchAllSales },
     ],
   });
-
+// its approchg for coding 
   const [usersResult, vendorsResult, productsResult, salesResult] = results;
   const allUsers = usersResult.data || [];
   const allVendors = vendorsResult.data || [];
