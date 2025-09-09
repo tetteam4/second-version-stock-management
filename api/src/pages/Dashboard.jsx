@@ -55,7 +55,6 @@ const DashboardPage = () => {
         }
 
       case "shop":
-        // Handle roles within the shop business
         switch (role) {
           case "manager":
             return <ShopManagerDashboard />;

@@ -24,7 +24,6 @@ LOCAL_APPS = [
     "apps.vendor",
     "apps.profiles",
     "apps.restaurant",
-    "apps.table",
     "apps.role",
     "apps.common",
 ]
@@ -181,7 +180,6 @@ SIMPLE_JWT = {
     "AUTH_TOKEN_CLASSES": ("rest_framework_simplejwt.tokens.AccessToken",),
 }
 
-
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
@@ -202,7 +200,6 @@ LOGGING = {
         },
     },
 }
-
 
 JAZZMIN_SETTINGS = {
     # title of the window (Will default to current_admin_site.site_title if absent or None)
