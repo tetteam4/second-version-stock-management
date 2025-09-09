@@ -53,7 +53,6 @@ const AppRoutes = () => {
           </Route>
         </Route>
       </Route>
-
       <Route path="*" element={<Navigate to="/welcome" replace />} />
     </Routes>
   );

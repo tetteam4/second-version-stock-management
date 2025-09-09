@@ -21,7 +21,7 @@ const ProtectedRoute = ({ allowedRoles }) => {
     // Redirect to an 'unauthorized' page or back to the dashboard
     return <Navigate to="/unauthorized" replace />;
   }
-  // 3. If authenticated and has the required role (or no role is required)
+  
   return <Outlet />;
 };
 export default ProtectedRoute;
